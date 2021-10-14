@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+
+  ipfs:
+    image: ipfs/go-ipfs:latest
+    container_name: ipfs
+    volumes:
+      - ipfs_data:/data/ipfs
+    ports:
+      - 4001:4001/tcp
+      - 4001:4001/udp
+      - 5001:5001/tcp
+      - 8080:8080/tcp
+      - 8081:8081/tcp
+  gateway-monitor:
+    build: .
+    container_name: gateway-monitor
+    environment:
+      - GOLOG_LOG_LEVEL=info
+      - GATEWAY_MONITOR_IPFS=/dns/ipfs/tcp/5001/http
+      # - GATEWAY_MONITOR_PINNING_SERVICE_URL=
+      # - GATEWAY_MONITOR_PINNING_SERVICE_TOKEN=
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    volumes:
+      - ./_docker-compose/prometheus:/etc/prometheus
+      - prom_data:/prometheus
+
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./_docker-compose/grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ./_docker-compose/grafana/config.monitoring
+
+volumes:
+  ipfs_data:
+  prom_data:
+  grafana_data:

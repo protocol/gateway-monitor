@@ -22,7 +22,7 @@ docker-compose up -d
 
 Then navigate your browser to the grafana instance at http://localhost:3000
 
-*psst! password is fubar*
+*psst! password is ipfs*
 
 
 

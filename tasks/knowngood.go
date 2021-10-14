@@ -32,12 +32,14 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
 			Name:      "latency",
+			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-100 seconds
 		})
 	fetch_time := prometheus.NewHistogram(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
 			Name:      "fetch_time",
+			Buckets:   prometheus.LinearBuckets(0, 1000, 10), // 0-1 seconds (small file)
 		})
 	fails := prometheus.NewCounter(
 		prometheus.CounterOpts{

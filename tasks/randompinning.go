@@ -35,12 +35,14 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_pinning",
 			Name:      fmt.Sprintf("%d_latency", size),
+			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-10 seconds
 		})
 	fetch_time := prometheus.NewHistogram(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_pinning",
 			Name:      fmt.Sprintf("%d_fetch_time", size),
+			Buckets:   prometheus.LinearBuckets(0, 300000, 300), // 0-300 seconds
 		})
 	fails := prometheus.NewCounter(
 		prometheus.CounterOpts{

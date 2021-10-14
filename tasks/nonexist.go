@@ -33,12 +33,14 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "nonexsist",
 			Name:      "latency",
+			Buckets:   prometheus.LinearBuckets(0, 600000, 10), // 0-10-minutes
 		})
 	fetch_time := prometheus.NewHistogram(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exist",
 			Name:      "fetch_time",
+			Buckets:   prometheus.LinearBuckets(0, 1000, 10), // 0-1 second
 		})
 	fails := prometheus.NewCounter(
 		prometheus.CounterOpts{

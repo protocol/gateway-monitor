@@ -33,7 +33,7 @@ var (
 		NewKnownGoodCheck("0 * * * *", map[string][]byte{
 			"/ipfs/Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z": []byte("Hello World!\r\n"),
 		}),
-		// NewNonExistCheck("0 * * * *"),
+		NewNonExistCheck("0 * * * *"),
 	}
 
 	common_fetch_speed = prometheus.NewGauge(

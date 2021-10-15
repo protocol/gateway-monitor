@@ -35,7 +35,7 @@ type TaskQueue struct {
 	taskmap map[task.Task]bool
 }
 
-func NewTaskQueue() *TaskQueue {
+func New() *TaskQueue {
 	return &TaskQueue{
 		tasks:   []task.Task{},
 		taskmap: make(map[task.Task]bool),

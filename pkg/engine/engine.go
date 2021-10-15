@@ -25,14 +25,20 @@ type Engine struct {
 
 // Create an engine with Cron and Prometheus setup
 func New(sh *shell.Shell, ps *pinning.Client, gw string, tsks ...task.Task) *Engine {
-	q := queue.NewTaskQueue()
-	return NewWithQueue(q, sh, ps, gw, tsks...)
+	q := queue.New()
+	c := cron.New()
+	return NewWithQueueAndCron(q, c, sh, ps, gw, tsks...)
 }
 
-func NewWithQueue(q *queue.TaskQueue, sh *shell.Shell, ps *pinning.Client, gw string, tsks ...task.Task) *Engine {
+// Create an engine passing a queue and cron instance
+// If we ever decide that parallelism is desirable, multiple engines could
+// subscribe to the same queue. In that case, you would instantiate one engine with tasks
+// so they are registered once. Then, any subsequent engines with which the queue is shared
+// will run over the same tasks in parallel.
+func NewWithQueueAndCron(q *queue.TaskQueue, c *cron.Cron, sh *shell.Shell, ps *pinning.Client, gw string, tsks ...task.Task) *Engine {
 	eng := Engine{
-		c:    cron.New(),
-		q:    queue.NewTaskQueue(),
+		c:    c,
+		q:    q,
 		sh:   sh,
 		ps:   ps,
 		gw:   gw,
@@ -54,7 +60,7 @@ func NewWithQueue(q *queue.TaskQueue, sh *shell.Shell, ps *pinning.Client, gw st
 func NewSingle(sh *shell.Shell, ps *pinning.Client, gw string, tsks ...task.Task) *Engine {
 	eng := Engine{
 		c:    cron.New(),
-		q:    queue.NewTaskQueue(),
+		q:    queue.New(),
 		sh:   sh,
 		ps:   ps,
 		gw:   gw,

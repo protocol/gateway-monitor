@@ -41,19 +41,19 @@ func NewRandomLocalBench(schedule string, size int) *RandomLocalBench {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_local",
 			Name:      fmt.Sprintf("%d_fetch_time", size),
-			Buckets:   prometheus.LinearBuckets(0, 300000, 300), // 0-300 seconds
+			Buckets:   prometheus.LinearBuckets(0, 300000, 10), // 0-300 seconds
 		})
 	fails := prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_local",
-			Name:      "fail_count",
+			Name:      fmt.Sprintf("%d_fail_count", size),
 		})
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_local",
-			Name:      "error_count",
+			Name:      fmt.Sprintf("%d_error_count", size),
 		})
 	reg := task.Registration{
 		Schedule: schedule,

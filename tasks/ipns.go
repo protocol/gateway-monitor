@@ -36,7 +36,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
 			Name:      "publish",
-			Buckets:   prometheus.LinearBuckets(0, 100000, 100), // 0-100 seconds
+			Buckets:   prometheus.LinearBuckets(0, 100000, 10), // 0-100 seconds
 		})
 	start_time := prometheus.NewHistogram(
 		prometheus.HistogramOpts{
@@ -50,19 +50,19 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
 			Name:      fmt.Sprintf("%d_fetch_time", size),
-			Buckets:   prometheus.LinearBuckets(0, 100000, 100), // 0-100 seconds
+			Buckets:   prometheus.LinearBuckets(0, 100000, 10), // 0-100 seconds
 		})
 	fails := prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
-			Name:      "fail_count",
+			Name:      fmt.Sprintf("%d_fail_count", size),
 		})
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
-			Name:      "error_count",
+			Name:      fmt.Sprintf("%d_error_count", size),
 		})
 	reg := task.Registration{
 		Schedule: schedule,

@@ -20,7 +20,7 @@ If you have docker-compose, you can run a local instance.
 docker-compose up -d
 ```
 
-Then navigate your browser to the grafana instance at http://localhost:3000
+Then navigate your browser to the grafana instance at http://localhost:3000/d/n1qvDWO7k/gateway-monitor-tasks?orgId=1
 
 *psst! password is ipfs*
 

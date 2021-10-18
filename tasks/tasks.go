@@ -1,8 +1,11 @@
 package tasks
 
 import (
+	"context"
+
 	"github.com/prometheus/client_golang/prometheus"
 
+	shell "github.com/ipfs/go-ipfs-api"
 	logging "github.com/ipfs/go-log"
 
 	"github.com/ipfs-shipyard/gateway-monitor/pkg/task"
@@ -49,3 +52,26 @@ var (
 			Name:      "fetch_latency",
 		})
 )
+
+// Clean up the
+func cleanup(ctx context.Context, sh *shell.Shell) error {
+	log.Info("cleanin up ipfs")
+	infos, err := sh.Pins()
+	if err != nil {
+		return err
+	}
+
+	for k := range infos {
+		err := sh.Unpin(k)
+		if err != nil {
+			log.Warn("failed to unpin from ipfs", "cid", k, "err", err)
+			// continue. we still want to try to GC
+		}
+	}
+	req := sh.Request("repo/gc")
+	_, err = req.Send(ctx)
+	if err != nil {
+		log.Warn("failed to gc repo.", "err", err)
+	}
+	return err
+}

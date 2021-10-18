@@ -73,6 +73,7 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 }
 
 func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
+	defer cleanup(ctx, sh)
 
 	buf := make([]byte, 128)
 	_, err := rand.Read(buf)

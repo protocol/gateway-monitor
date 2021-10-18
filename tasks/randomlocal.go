@@ -75,6 +75,7 @@ func NewRandomLocalBench(schedule string, size int) *RandomLocalBench {
 }
 
 func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
+	defer cleanup(ctx, sh)
 
 	// generate random data
 	log.Infof("generating %d bytes random data", t.size)

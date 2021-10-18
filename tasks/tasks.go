@@ -55,7 +55,7 @@ var (
 
 // Clean up the
 func cleanup(ctx context.Context, sh *shell.Shell) error {
-	log.Info("cleanin up ipfs")
+	log.Info("cleaning up ipfs")
 	infos, err := sh.Pins()
 	if err != nil {
 		return err
@@ -64,14 +64,14 @@ func cleanup(ctx context.Context, sh *shell.Shell) error {
 	for k := range infos {
 		err := sh.Unpin(k)
 		if err != nil {
-			log.Warn("failed to unpin from ipfs", "cid", k, "err", err)
+			log.Warnw("failed to unpin from ipfs", "cid", k, "err", err)
 			// continue. we still want to try to GC
 		}
 	}
 	req := sh.Request("repo/gc")
 	_, err = req.Send(ctx)
 	if err != nil {
-		log.Warn("failed to gc repo.", "err", err)
+		log.Warnw("failed to gc repo.", "err", err)
 	}
 	return err
 }

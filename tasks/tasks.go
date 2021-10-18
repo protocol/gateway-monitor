@@ -29,14 +29,14 @@ var (
 	log = logging.Logger("tasks")
 
 	All = []task.Task{
-		NewRandomLocalBench("0 * * * *", 16*miB),
-		NewRandomLocalBench("0 * * * *", 256*miB),
-		NewIpnsBench("0 * * * *", 16*miB),
-		NewIpnsBench("0 * * * *", 256*miB),
-		NewKnownGoodCheck("0 * * * *", map[string][]byte{
+		NewRandomLocalBench("10,30,50 * * * *", 16*miB),
+		NewRandomLocalBench("20 * * * *", 256*miB),
+		NewIpnsBench("10,30,50 * * * *", 16*miB),
+		NewIpnsBench("40 * * * *", 256*miB),
+		NewKnownGoodCheck("* * * * *", map[string][]byte{
 			"/ipfs/Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z": []byte("Hello World!\r\n"),
 		}),
-		// NewNonExistCheck("0 * * * *"),
+		NewNonExistCheck("0 * * * *"),
 	}
 
 	common_fetch_speed = prometheus.NewGauge(

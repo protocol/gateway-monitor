@@ -9,7 +9,7 @@ require (
 	github.com/ipfs/go-pinning-service-http-client v0.1.0
 	github.com/multiformats/go-multihash v0.0.14
 	github.com/prometheus/client_golang v1.11.0
-	github.com/robfig/cron v1.2.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/urfave/cli/v2 v2.3.0
 )
 

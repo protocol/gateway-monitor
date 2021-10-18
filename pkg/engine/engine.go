@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 
 	shell "github.com/ipfs/go-ipfs-api"
 	pinning "github.com/ipfs/go-pinning-service-http-client"

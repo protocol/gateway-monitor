@@ -76,7 +76,7 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 }
 
 func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
-	defer cleanup(ctx, sh)
+	defer gc(ctx, sh)
 
 	// generate random data
 	log.Infof("generating %d bytes random data", t.size)

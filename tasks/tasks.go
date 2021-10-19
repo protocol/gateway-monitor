@@ -53,23 +53,12 @@ var (
 		})
 )
 
-// Clean up the
-func cleanup(ctx context.Context, sh *shell.Shell) error {
-	log.Info("cleaning up ipfs")
-	infos, err := sh.Pins()
-	if err != nil {
-		return err
-	}
-
-	for k := range infos {
-		err := sh.Unpin(k)
-		if err != nil {
-			log.Warnw("failed to unpin from ipfs", "cid", k, "err", err)
-			// continue. we still want to try to GC
-		}
-	}
+// This is here to keep the volume size down
+// Tasks that create pins should clean up after themselves
+// and run this.
+func gc(ctx context.Context, sh *shell.Shell) error {
 	req := sh.Request("repo/gc")
-	_, err = req.Send(ctx)
+	_, err := req.Send(ctx)
 	if err != nil {
 		log.Warnw("failed to gc repo.", "err", err)
 	}

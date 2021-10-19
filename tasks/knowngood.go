@@ -73,8 +73,6 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 }
 
 func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
-	defer cleanup(ctx, sh)
-
 	for ipfspath, value := range t.checks {
 		// request from gateway, observing client metrics
 		url := fmt.Sprintf("%s%s", gw, ipfspath)

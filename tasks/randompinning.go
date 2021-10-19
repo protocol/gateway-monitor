@@ -23,33 +23,39 @@ import (
 type RandomPinningBench struct {
 	reg        *task.Registration
 	size       int
-	start_time prometheus.Histogram
-	fetch_time prometheus.Histogram
-	fails      prometheus.Counter
+	start_time *prometheus.HistogramVec
+	fetch_time *prometheus.HistogramVec
+	fails      *prometheus.CounterVec
 	errors     prometheus.Counter
 }
 
 func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
-	start_time := prometheus.NewHistogram(
+	start_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_pinning",
 			Name:      fmt.Sprintf("%d_latency", size),
 			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-10 seconds
-		})
-	fetch_time := prometheus.NewHistogram(
+		},
+		[]string{},
+	)
+	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_pinning",
 			Name:      fmt.Sprintf("%d_fetch_time", size),
 			Buckets:   prometheus.LinearBuckets(0, 300000, 10), // 0-300 seconds
-		})
-	fails := prometheus.NewCounter(
+		},
+		[]string{},
+	)
+	fails := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_pinning",
 			Name:      fmt.Sprintf("%d_fail_count", size),
-		})
+		},
+		[]string{},
+	)
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
@@ -139,14 +145,12 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 	log.Infow("fetching from gateway", "url", url)
 	req, _ := http.NewRequest("GET", url, nil)
 	start := time.Now()
-	var firstbyte_time time.Time
+	var firstByteTime time.Time
 	trace := &httptrace.ClientTrace{
 		GotFirstResponseByte: func() {
 			latency := time.Since(start).Milliseconds()
 			log.Infow("first byte received", "ms", latency)
-			t.start_time.Observe(float64(latency))
-			common_fetch_latency.Set(float64(latency))
-			firstbyte_time = time.Now()
+			firstByteTime = time.Now()
 		},
 	}
 	req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
@@ -160,17 +164,28 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 		t.errors.Inc()
 		return fmt.Errorf("failed to downlaod content: %w", err)
 	}
-	total_time := time.Since(start).Milliseconds()
-	download_time := time.Since(firstbyte_time).Seconds()
-	log.Infow("finished download", "ms", total_time)
-	t.fetch_time.Observe(float64(total_time))
-	downloadBytesPerSecond := float64(t.size) / download_time
+
+	labels := prometheus.Labels{
+		"pop": resp.Header.Get("X-IPFS-POP"),
+	}
+
+	// Record observations.
+	timeToFirstByte := firstByteTime.Sub(start).Milliseconds()
+	totalTime := time.Since(start).Milliseconds()
+	downloadTime := time.Since(firstByteTime).Seconds()
+	downloadBytesPerSecond := float64(t.size) / downloadTime
+
+	t.start_time.With(labels).Observe(float64(timeToFirstByte))
+	common_fetch_latency.Set(float64(timeToFirstByte))
+
+	log.Infow("finished download", "ms", totalTime)
+	t.fetch_time.With(labels).Observe(float64(totalTime))
 	common_fetch_speed.Set(downloadBytesPerSecond)
 
 	log.Info("checking result")
 	// compare response with what we sent
 	if !reflect.DeepEqual(respb, randb) {
-		t.fails.Inc()
+		t.fails.With(labels).Inc()
 		return fmt.Errorf("expected response from gateway to match generated content: %s", url)
 	}
 

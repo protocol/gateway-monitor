@@ -37,7 +37,7 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Name:      fmt.Sprintf("%d_latency", size),
 			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-10 seconds
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -46,7 +46,7 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Name:      fmt.Sprintf("%d_fetch_time", size),
 			Buckets:   prometheus.LinearBuckets(0, 300000, 10), // 0-300 seconds
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	fails := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -54,7 +54,7 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Subsystem: "random_pinning",
 			Name:      fmt.Sprintf("%d_fail_count", size),
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{

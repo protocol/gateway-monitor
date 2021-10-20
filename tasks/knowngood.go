@@ -34,7 +34,7 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Name:      "latency",
 			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-100 seconds
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -43,7 +43,7 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Name:      "fetch_time",
 			Buckets:   prometheus.LinearBuckets(0, 1000, 10), // 0-1 seconds (small file)
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	fails := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -51,7 +51,7 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Subsystem: "known_good",
 			Name:      "fail_count",
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{

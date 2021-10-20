@@ -35,7 +35,7 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Name:      "latency",
 			Buckets:   prometheus.LinearBuckets(0, 600000, 10), // 0-10-minutes
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -44,7 +44,7 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Name:      "fetch_time",
 			Buckets:   prometheus.LinearBuckets(0, 1000, 10), // 0-1 second
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	fails := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -52,7 +52,7 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Subsystem: "non_exist",
 			Name:      "fail_count",
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{

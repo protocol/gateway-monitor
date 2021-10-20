@@ -46,7 +46,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Name:      fmt.Sprintf("%d_latency", size),
 			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-10 seconds
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -55,7 +55,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Name:      fmt.Sprintf("%d_fetch_time", size),
 			Buckets:   prometheus.LinearBuckets(0, 100000, 10), // 0-100 seconds
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	fails := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -63,7 +63,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Subsystem: "ipns",
 			Name:      fmt.Sprintf("%d_fail_count", size),
 		},
-		[]string{},
+		[]string{"pop"},
 	)
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{

@@ -35,16 +35,16 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
-			Name:      "publish",
-			Buckets:   prometheus.LinearBuckets(0, 100000, 10), // 0-100 seconds
+			Name:      "publish_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 10, 10), // 0-10 seconds
 		},
 	)
 	start_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
-			Name:      fmt.Sprintf("%d_latency", size),
-			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-10 seconds
+			Name:      fmt.Sprintf("%d_latency_seconds", size),
+			Buckets:   prometheus.LinearBuckets(0, 2, 10), // 0-2 seconds
 		},
 		[]string{"pop"},
 	)
@@ -52,8 +52,8 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
-			Name:      fmt.Sprintf("%d_fetch_time", size),
-			Buckets:   prometheus.LinearBuckets(0, 100000, 10), // 0-100 seconds
+			Name:      fmt.Sprintf("%d_fetch_seconds", size),
+			Buckets:   prometheus.LinearBuckets(0, 60, 10), // 0-60 seconds
 		},
 		[]string{"pop"},
 	)
@@ -138,8 +138,8 @@ func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client
 	// Publish IPNS
 	pub_start := time.Now()
 	pubResp, err := sh.PublishWithDetails(cidstr, keyName, time.Hour, time.Hour, true)
-	publish_time := time.Since(pub_start).Milliseconds()
-	log.Infow("published IPNS", "ms", publish_time, "cid", cidstr, "ipns", pubResp.Name)
+	publish_time := time.Since(pub_start).Seconds()
+	log.Infow("published IPNS", "seconds", publish_time, "cid", cidstr, "ipns", pubResp.Name)
 	t.publish_time.Observe(float64(publish_time))
 
 	// request from gateway, observing client metrics
@@ -150,8 +150,8 @@ func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client
 	var firstByteTime time.Time
 	trace := &httptrace.ClientTrace{
 		GotFirstResponseByte: func() {
-			latency := time.Since(start).Milliseconds()
-			log.Infow("first byte received", "ms", latency)
+			latency := time.Since(start).Seconds()
+			log.Infow("first byte received", "seconds", latency)
 			firstByteTime = time.Now()
 		},
 	}
@@ -172,15 +172,15 @@ func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client
 	}
 
 	// Record observations.
-	timeToFirstByte := firstByteTime.Sub(start).Milliseconds()
-	totalTime := time.Since(start).Milliseconds()
+	timeToFirstByte := firstByteTime.Sub(start).Seconds()
+	totalTime := time.Since(start).Seconds()
 	downloadTime := time.Since(firstByteTime).Seconds()
 	downloadBytesPerSecond := float64(t.size) / downloadTime
 
 	t.start_time.With(labels).Observe(float64(timeToFirstByte))
 	common_fetch_latency.Set(float64(timeToFirstByte))
 
-	log.Infow("finished download", "ms", totalTime)
+	log.Infow("finished download", "seconds", totalTime)
 	t.fetch_time.With(labels).Observe(float64(totalTime))
 	common_fetch_speed.Set(downloadBytesPerSecond)
 

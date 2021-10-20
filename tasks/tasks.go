@@ -43,13 +43,13 @@ var (
 		prometheus.GaugeOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "common",
-			Name:      "fetch_speed",
+			Name:      "fetch_speed_bytes_per_second",
 		})
 	common_fetch_latency = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "common",
-			Name:      "fetch_latency",
+			Name:      "fetch_latency_seconds",
 		})
 )
 

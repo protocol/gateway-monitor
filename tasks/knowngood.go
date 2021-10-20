@@ -31,8 +31,8 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
-			Name:      "latency",
-			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-100 seconds
+			Name:      "latency_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 0.5, 10), // 0-0.5 seconds
 		},
 		[]string{"pop"},
 	)
@@ -40,8 +40,8 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
-			Name:      "fetch_time",
-			Buckets:   prometheus.LinearBuckets(0, 1000, 10), // 0-1 seconds (small file)
+			Name:      "fetch_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 0.5, 10), // 0-0.5 seconds (small file)
 		},
 		[]string{"pop"},
 	)
@@ -88,8 +88,8 @@ func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.C
 		var firstByteTime time.Time
 		trace := &httptrace.ClientTrace{
 			GotFirstResponseByte: func() {
-				latency := time.Since(start).Milliseconds()
-				log.Infow("first byte received", "ms", latency)
+				latency := time.Since(start).Seconds()
+				log.Infow("first byte received", "seconds", latency)
 				firstByteTime = time.Now()
 			},
 		}
@@ -110,13 +110,13 @@ func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.C
 		}
 
 		// Record observations.
-		timeToFirstByte := firstByteTime.Sub(start).Milliseconds()
-		totalTime := time.Since(start).Milliseconds()
+		timeToFirstByte := firstByteTime.Sub(start).Seconds()
+		totalTime := time.Since(start).Seconds()
 
 		t.start_time.With(labels).Observe(float64(timeToFirstByte))
 		common_fetch_latency.Set(float64(timeToFirstByte))
 
-		log.Infow("finished download", "ms", totalTime)
+		log.Infow("finished download", "seconds", totalTime)
 		t.fetch_time.With(labels).Observe(float64(totalTime))
 
 		log.Info("checking result")

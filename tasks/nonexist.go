@@ -32,8 +32,8 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exsist",
-			Name:      "latency",
-			Buckets:   prometheus.LinearBuckets(0, 600000, 10), // 0-10-minutes
+			Name:      "latency_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 600, 10), // 0-10-minutes
 		},
 		[]string{"pop"},
 	)
@@ -41,8 +41,8 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exist",
-			Name:      "fetch_time",
-			Buckets:   prometheus.LinearBuckets(0, 1000, 10), // 0-1 second
+			Name:      "fetch_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 1, 10), // 0-1 second. This should never happen in reality.
 		},
 		[]string{"pop"},
 	)
@@ -108,8 +108,8 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 	var firstByteTime time.Time
 	trace := &httptrace.ClientTrace{
 		GotFirstResponseByte: func() {
-			latency := time.Since(start).Milliseconds()
-			log.Infow("first byte received", "ms", latency)
+			latency := time.Since(start).Seconds()
+			log.Infow("first byte received", "seconds", latency)
 			firstByteTime = time.Now()
 		},
 	}
@@ -130,12 +130,12 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 	}
 
 	// Record observations.
-	timeToFirstByte := firstByteTime.Sub(start).Milliseconds()
-	totalTime := time.Since(start).Milliseconds()
+	timeToFirstByte := firstByteTime.Sub(start).Seconds()
+	totalTime := time.Since(start).Seconds()
 
 	t.start_time.With(labels).Observe(float64(timeToFirstByte))
 
-	log.Infow("finished download", "ms", totalTime)
+	log.Infow("finished download", "seconds", totalTime)
 	t.fetch_time.With(labels).Observe(float64(totalTime))
 
 	log.Info("checking that we got a 404")

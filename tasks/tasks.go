@@ -29,13 +29,15 @@ var (
 	log = logging.Logger("tasks")
 
 	All = []task.Task{
-		NewRandomLocalBench("* * * * *", 16*miB),
-		NewRandomLocalBench("* * * * *", 256*miB),
-		NewIpnsBench("* * * * *", 16*miB),
-		NewIpnsBench("* * * * *", 256*miB),
+
+		NewRandomLocalBench("10,30,50 * * * *", 16*miB),
+		NewRandomLocalBench("20 * * * *", 256*miB),
+		NewIpnsBench("10,30,50 * * * *", 16*miB),
+		NewIpnsBench("40 * * * *", 256*miB),
 		NewKnownGoodCheck("* * * * *", map[string][]byte{
 			"/ipfs/Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z": []byte("Hello World!\r\n"),
 		}),
+		NewNonExistCheck("0 * * * *"),
 	}
 
 	common_fetch_speed = prometheus.NewGauge(
@@ -50,29 +52,6 @@ var (
 			Subsystem: "common",
 			Name:      "fetch_latency_seconds",
 		})
-
-	// NewRandomLocalBench("10,30,50 * * * *", 16*miB),
-	// NewRandomLocalBench("20 * * * *", 256*miB),
-	// NewIpnsBench("10,30,50 * * * *", 16*miB),
-	// NewIpnsBench("40 * * * *", 256*miB),
-	// NewKnownGoodCheck("* * * * *", map[string][]byte{
-	// 	"/ipfs/Qmc5gCcjYypU7y28oCALwfSvxCBskLuPKWpK4qpterKC7z": []byte("Hello World!\r\n"),
-	// }),
-	// NewNonExistCheck("0 * * * *"),
-	// }
-
-	// common_fetch_speed = prometheus.NewGauge(
-	// prometheus.GaugeOpts{
-	// 	Namespace: "gatewaymonitor_task",
-	// 	Subsystem: "common",
-	// 	Name:      "fetch_speed_bytes_per_second",
-	// })
-	// common_fetch_latency = prometheus.NewGauge(
-	// prometheus.GaugeOpts{
-	// 	Namespace: "gatewaymonitor_task",
-	// 	Subsystem: "common",
-	// 	Name:      "fetch_latency_seconds",
-	// })
 )
 
 // This is here to keep the volume size down

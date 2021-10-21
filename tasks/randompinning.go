@@ -35,7 +35,7 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_pinning",
 			Name:      fmt.Sprintf("%d_latency_seconds", size),
-			Buckets:   prometheus.LinearBuckets(0, 2, 10), // 0-2 seconds
+			Buckets:   prometheus.LinearBuckets(0, 6, 10), // 0-1 minutes
 		},
 		[]string{"pop"},
 	)
@@ -44,7 +44,7 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_pinning",
 			Name:      fmt.Sprintf("%d_fetch_seconds", size),
-			Buckets:   prometheus.LinearBuckets(0, 60, 10), // 0-60 seconds
+			Buckets:   prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
 		},
 		[]string{"pop"},
 	)
@@ -165,8 +165,9 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 		return fmt.Errorf("failed to downlaod content: %w", err)
 	}
 
+	pop := resp.Header.Get("X-IPFS-POP")
 	labels := prometheus.Labels{
-		"pop": resp.Header.Get("X-IPFS-POP"),
+		"pop": pop,
 	}
 
 	// Record observations.
@@ -178,7 +179,7 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 	t.start_time.With(labels).Observe(float64(timeToFirstByte))
 	common_fetch_latency.Set(float64(timeToFirstByte))
 
-	log.Infow("finished download", "seconds", totalTime)
+	log.Infow("finished download", "seconds", totalTime, "pop", pop)
 	t.fetch_time.With(labels).Observe(float64(totalTime))
 	common_fetch_speed.Set(downloadBytesPerSecond)
 
@@ -186,7 +187,7 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 	// compare response with what we sent
 	if !reflect.DeepEqual(respb, randb) {
 		t.fails.With(labels).Inc()
-		return fmt.Errorf("expected response from gateway to match generated content: %s", url)
+		return fmt.Errorf("expected response from gateway to match generated content: pop: %s, url: %s", pop, url)
 	}
 
 	return nil

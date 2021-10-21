@@ -44,7 +44,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
 			Name:      fmt.Sprintf("%d_latency_seconds", size),
-			Buckets:   prometheus.LinearBuckets(0, 2, 10), // 0-2 seconds
+			Buckets:   prometheus.LinearBuckets(0, 6, 10), // 0-1 minutes
 		},
 		[]string{"pop"},
 	)
@@ -53,7 +53,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
 			Name:      fmt.Sprintf("%d_fetch_seconds", size),
-			Buckets:   prometheus.LinearBuckets(0, 60, 10), // 0-60 seconds
+			Buckets:   prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
 		},
 		[]string{"pop"},
 	)

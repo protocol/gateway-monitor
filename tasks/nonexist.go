@@ -33,7 +33,7 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exsist",
 			Name:      "latency_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 600, 10), // 0-10-minutes
+			Buckets:   prometheus.LinearBuckets(0, 60, 10), // 0-10-minutes
 		},
 		[]string{"pop"},
 	)
@@ -42,7 +42,7 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exist",
 			Name:      "fetch_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 1, 10), // 0-1 second. This should never happen in reality.
+			Buckets:   prometheus.LinearBuckets(0, 0.1, 10), // 0-1 second. This should never happen in reality.
 		},
 		[]string{"pop"},
 	)
@@ -125,8 +125,9 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 		return fmt.Errorf("failed to download content: %w", err)
 	}
 
+	pop := resp.Header.Get("X-IPFS-POP")
 	labels := prometheus.Labels{
-		"pop": resp.Header.Get("X-IPFS-POP"),
+		"pop": pop,
 	}
 
 	// Record observations.
@@ -135,13 +136,13 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 
 	t.start_time.With(labels).Observe(float64(timeToFirstByte))
 
-	log.Infow("finished download", "seconds", totalTime)
+	log.Infow("finished download", "seconds", totalTime, "pop", pop)
 	t.fetch_time.With(labels).Observe(float64(totalTime))
 
 	log.Info("checking that we got a 404")
 	if resp.StatusCode != 404 {
 		t.fails.With(labels).Inc()
-		return fmt.Errorf("expected to see 404 from gateway, but didn't. status: (%d): %w", resp.StatusCode, err)
+		return fmt.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d): %w", pop, resp.StatusCode, err)
 	}
 
 	return nil

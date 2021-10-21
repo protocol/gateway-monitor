@@ -32,7 +32,7 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
 			Name:      "latency_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 0.5, 10), // 0-0.5 seconds
+			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-2 seconds
 		},
 		[]string{"pop"},
 	)
@@ -41,7 +41,7 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
 			Name:      "fetch_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 0.5, 10), // 0-0.5 seconds (small file)
+			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-2 seconds (small file)
 		},
 		[]string{"pop"},
 	)
@@ -105,8 +105,9 @@ func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.C
 			return fmt.Errorf("failed to download content: %w", err)
 		}
 
+		pop := resp.Header.Get("X-IPFS-POP")
 		labels := prometheus.Labels{
-			"pop": resp.Header.Get("X-IPFS-POP"),
+			"pop": pop,
 		}
 
 		// Record observations.
@@ -116,7 +117,7 @@ func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.C
 		t.start_time.With(labels).Observe(float64(timeToFirstByte))
 		common_fetch_latency.Set(float64(timeToFirstByte))
 
-		log.Infow("finished download", "seconds", totalTime)
+		log.Infow("finished download", "seconds", totalTime, "pop", pop)
 		t.fetch_time.With(labels).Observe(float64(totalTime))
 
 		log.Info("checking result")

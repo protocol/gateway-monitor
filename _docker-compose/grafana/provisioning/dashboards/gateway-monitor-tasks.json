@@ -22,11 +22,12 @@
   "fiscalYearStartMonth": 0,
   "gnetId": null,
   "graphTooltip": 0,
+  "iteration": 1634762005948,
   "links": [],
   "liveNow": false,
   "panels": [
     {
-      "datasource": null,
+      "datasource": "${source}",
       "description": "",
       "fieldConfig": {
         "defaults": {
@@ -98,7 +99,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "gatewaymonitor_task_common_fetch_latency",
+          "expr": "gatewaymonitor_task_common_fetch_latency_seconds",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -108,7 +109,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": null,
+      "datasource": "${source}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -179,7 +180,7 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "gatewaymonitor_task_common_fetch_speed",
+          "expr": "gatewaymonitor_task_common_fetch_speed_bytes_per_second",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -201,7 +202,7 @@
         "mode": "spectrum"
       },
       "dataFormat": "timeseries",
-      "datasource": null,
+      "datasource": "${source}",
       "description": "",
       "gridPos": {
         "h": 8,
@@ -221,14 +222,16 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_ipns_16777216_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_ipns_16777216_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_ipns_268435456_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_ipns_268435456_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -236,7 +239,8 @@
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_random_local_16777216_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_random_local_16777216_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -244,7 +248,8 @@
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_random_local_268435456_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_random_local_268435456_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -252,7 +257,8 @@
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_known_good_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_known_good_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -296,7 +302,7 @@
         "mode": "spectrum"
       },
       "dataFormat": "timeseries",
-      "datasource": null,
+      "datasource": "${source}",
       "description": "",
       "gridPos": {
         "h": 8,
@@ -316,7 +322,8 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_ipns_268435456_fetch_time_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_ipns_268435456_fetch_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -324,7 +331,8 @@
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_random_local_268435456_fetch_time_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_random_local_268435456_fetch_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -368,7 +376,7 @@
         "mode": "spectrum"
       },
       "dataFormat": "timeseries",
-      "datasource": null,
+      "datasource": "${source}",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -387,14 +395,16 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_ipns_16777216_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_ipns_16777216_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_ipns_268435456_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_ipns_268435456_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -402,7 +412,8 @@
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_random_local_16777216_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_random_local_16777216_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -410,7 +421,8 @@
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_random_local_268435456_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_random_local_268435456_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -418,7 +430,8 @@
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_known_good_latency_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_known_good_latency_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -462,7 +475,7 @@
         "mode": "spectrum"
       },
       "dataFormat": "timeseries",
-      "datasource": null,
+      "datasource": "${source}",
       "description": "",
       "gridPos": {
         "h": 8,
@@ -482,7 +495,8 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_ipns_268435456_fetch_time_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_ipns_268435456_fetch_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -490,7 +504,8 @@
         },
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_random_local_268435456_fetch_time_bucket[24h])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_random_local_268435456_fetch_seconds_bucket[24h])) by (le))",
+          "format": "heatmap",
           "hide": false,
           "interval": "",
           "legendFormat": "",
@@ -522,18 +537,296 @@
       "yBucketSize": null
     },
     {
+      "datasource": "${source}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 64,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "gatewaymonitor_task_known_good_latency_seconds_sum / gatewaymonitor_task_known_good_latency_seconds_count",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "mean time to first byte (cached)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${source}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "id": 73,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "text": {}
+      },
+      "pluginVersion": "8.2.1",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "gatewaymonitor_task_known_good_latency_seconds_bucket",
+          "format": "heatmap",
+          "interval": "",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "title": "time to first byte (cached)",
+      "type": "bargauge"
+    },
+    {
+      "datasource": "${source}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 65,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "(gatewaymonitor_task_random_local_16777216_latency_seconds_sum + gatewaymonitor_task_random_local_268435456_latency_seconds_sum + gatewaymonitor_task_ipns_16777216_latency_seconds_sum +gatewaymonitor_task_ipns_268435456_latency_seconds_sum) / (gatewaymonitor_task_random_local_16777216_latency_seconds_count + gatewaymonitor_task_random_local_268435456_latency_seconds_count + gatewaymonitor_task_ipns_16777216_latency_seconds_count + gatewaymonitor_task_ipns_268435456_latency_seconds_count) ",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "mean time to first byte (non-cached)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${source}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 74,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "text": {}
+      },
+      "pluginVersion": "8.2.1",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "gatewaymonitor_task_ipns_16777216_latency_seconds_bucket + gatewaymonitor_task_ipns_268435456_latency_seconds_bucket + gatewaymonitor_task_random_local_16777216_latency_seconds_bucket + gatewaymonitor_task_random_local_268435456_latency_seconds_bucket",
+          "format": "heatmap",
+          "interval": "",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "title": "time to first byte (non-cached)",
+      "type": "bargauge"
+    },
+    {
       "collapsed": true,
       "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 40
       },
       "id": 51,
       "panels": [
         {
-          "datasource": null,
+          "datasource": "${source}",
           "description": "",
           "fieldConfig": {
             "defaults": {
@@ -561,7 +854,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 9
+            "y": 41
           },
           "id": 49,
           "options": {
@@ -581,7 +874,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_non_exist_fetch_time_bucket",
+              "expr": "gatewaymonitor_task_non_exist_fetch_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -591,7 +885,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -618,7 +912,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 9
+            "y": 41
           },
           "id": 43,
           "options": {
@@ -650,7 +944,7 @@
           "type": "stat"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -677,7 +971,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 17
+            "y": 49
           },
           "id": 47,
           "options": {
@@ -697,7 +991,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_non_exsist_latency_bucket",
+              "expr": "gatewaymonitor_task_non_exsist_latency_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -707,7 +1002,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -734,7 +1029,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 17
+            "y": 49
           },
           "id": 45,
           "options": {
@@ -776,12 +1071,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 41
       },
       "id": 41,
       "panels": [
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -808,7 +1103,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 10
+            "y": 42
           },
           "id": 37,
           "options": {
@@ -828,7 +1123,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_known_good_fetch_time_bucket",
+              "expr": "gatewaymonitor_task_known_good_fetch_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -838,7 +1134,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -865,7 +1161,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 10
+            "y": 42
           },
           "id": 33,
           "options": {
@@ -897,7 +1193,7 @@
           "type": "stat"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -924,7 +1220,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 18
+            "y": 50
           },
           "id": 39,
           "options": {
@@ -944,7 +1240,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_known_good_latency_bucket",
+              "expr": "gatewaymonitor_task_known_good_latency_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -954,7 +1251,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -981,7 +1278,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 18
+            "y": 50
           },
           "id": 35,
           "options": {
@@ -1023,12 +1320,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 42
       },
-      "id": 29,
+      "id": 67,
       "panels": [
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1055,9 +1352,9 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 11
+            "y": 43
           },
-          "id": 25,
+          "id": 68,
           "options": {
             "displayMode": "gradient",
             "orientation": "auto",
@@ -1075,7 +1372,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_ipns_16777216_latency_bucket",
+              "expr": "gatewaymonitor_task_ipns_268435456_latency_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -1085,7 +1383,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1112,7 +1410,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 11
+            "y": 43
           },
           "id": 21,
           "options": {
@@ -1144,7 +1442,7 @@
           "type": "stat"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1171,9 +1469,9 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 19
+            "y": 51
           },
-          "id": 27,
+          "id": 69,
           "options": {
             "displayMode": "gradient",
             "orientation": "auto",
@@ -1191,7 +1489,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_ipns_16777216_fetch_time_bucket",
+              "expr": "gatewaymonitor_task_ipns_268435456_fetch_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -1201,7 +1500,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1228,7 +1527,314 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 19
+            "y": 51
+          },
+          "id": 72,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.2.1",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "gatewaymonitor_task_ipns_16777216_fail_count",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "fail count",
+          "type": "stat"
+        },
+        {
+          "datasource": "${source}",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 59
+          },
+          "id": 70,
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "text": {}
+          },
+          "pluginVersion": "8.2.1",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "gatewaymonitor_task_ipns_publish_seconds_bucket",
+              "format": "heatmap",
+              "interval": "",
+              "legendFormat": "{{le}}",
+              "refId": "A"
+            }
+          ],
+          "title": "IPNS publish time",
+          "type": "bargauge"
+        }
+      ],
+      "title": "IPNS Large",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "id": 29,
+      "panels": [
+        {
+          "datasource": "${source}",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 44
+          },
+          "id": 25,
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "text": {}
+          },
+          "pluginVersion": "8.2.1",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "gatewaymonitor_task_ipns_16777216_latency_seconds_bucket",
+              "format": "heatmap",
+              "interval": "",
+              "legendFormat": "{{le}}",
+              "refId": "A"
+            }
+          ],
+          "title": "time to first byte",
+          "type": "bargauge"
+        },
+        {
+          "datasource": "${source}",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 44
+          },
+          "id": 71,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "auto"
+          },
+          "pluginVersion": "8.2.1",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "gatewaymonitor_task_ipns_16777216_error_count",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Error Count",
+          "type": "stat"
+        },
+        {
+          "datasource": "${source}",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 52
+          },
+          "id": 27,
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "text": {}
+          },
+          "pluginVersion": "8.2.1",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "gatewaymonitor_task_ipns_16777216_fetch_seconds_bucket",
+              "format": "heatmap",
+              "interval": "",
+              "legendFormat": "{{le}}",
+              "refId": "A"
+            }
+          ],
+          "title": "fetch time",
+          "type": "bargauge"
+        },
+        {
+          "datasource": "${source}",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 52
           },
           "id": 23,
           "options": {
@@ -1260,7 +1866,7 @@
           "type": "stat"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1287,7 +1893,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 27
+            "y": 60
           },
           "id": 31,
           "options": {
@@ -1307,7 +1913,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_ipns_publish_bucket",
+              "expr": "gatewaymonitor_task_ipns_publish_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -1317,7 +1924,7 @@
           "type": "bargauge"
         }
       ],
-      "title": "IPNS small",
+      "title": "IPNS Small",
       "type": "row"
     },
     {
@@ -1327,12 +1934,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 44
       },
       "id": 19,
       "panels": [
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1359,7 +1966,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 12
+            "y": 45
           },
           "id": 14,
           "options": {
@@ -1379,7 +1986,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_random_local_268435456_latency_bucket",
+              "expr": "gatewaymonitor_task_random_local_268435456_latency_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -1389,7 +1997,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1416,7 +2024,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 12
+            "y": 45
           },
           "id": 16,
           "options": {
@@ -1448,7 +2056,7 @@
           "type": "stat"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1475,7 +2083,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 20
+            "y": 53
           },
           "id": 12,
           "options": {
@@ -1495,7 +2103,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_random_local_268435456_fetch_time_bucket",
+              "expr": "gatewaymonitor_task_random_local_268435456_fetch_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -1505,7 +2114,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1532,7 +2141,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 20
+            "y": 53
           },
           "id": 17,
           "options": {
@@ -1574,12 +2183,12 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 45
       },
       "id": 6,
       "panels": [
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1606,7 +2215,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 13
+            "y": 46
           },
           "id": 4,
           "options": {
@@ -1626,7 +2235,9 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_random_local_16777216_latency_bucket",
+              "expr": "gatewaymonitor_task_random_local_16777216_latency_seconds_bucket",
+              "format": "heatmap",
+              "instant": false,
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -1636,7 +2247,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1663,7 +2274,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 13
+            "y": 46
           },
           "id": 10,
           "options": {
@@ -1695,7 +2306,7 @@
           "type": "stat"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1722,7 +2333,7 @@
             "h": 9,
             "w": 12,
             "x": 0,
-            "y": 21
+            "y": 54
           },
           "id": 2,
           "options": {
@@ -1742,7 +2353,8 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "gatewaymonitor_task_random_local_16777216_fetch_time_bucket",
+              "expr": "gatewaymonitor_task_random_local_16777216_fetch_seconds_bucket",
+              "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
               "refId": "A"
@@ -1752,7 +2364,7 @@
           "type": "bargauge"
         },
         {
-          "datasource": null,
+          "datasource": "${source}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1779,7 +2391,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 21
+            "y": 54
           },
           "id": 8,
           "options": {
@@ -1809,78 +2421,6 @@
           ],
           "title": "fail count",
           "type": "stat"
-        },
-        {
-          "datasource": null,
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 30
-          },
-          "id": 57,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "single"
-            }
-          },
-          "title": "Panel Title",
-          "type": "timeseries"
         }
       ],
       "title": "Random Local Small",
@@ -1891,7 +2431,32 @@
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "Prometheus"
+          ],
+          "value": [
+            "Prometheus"
+          ]
+        },
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": null,
+        "multi": true,
+        "name": "source",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",
@@ -1900,6 +2465,6 @@
   "timepicker": {},
   "timezone": "",
   "title": "gateway-monitor-tasks",
-  "uid": "n1qvDWO7k",
+  "uid": "dX01cxdnz",
   "version": 1
 }

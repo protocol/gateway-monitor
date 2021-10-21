@@ -20,33 +20,39 @@ import (
 type KnownGoodCheck struct {
 	reg        *task.Registration
 	checks     map[string][]byte
-	start_time prometheus.Histogram
-	fetch_time prometheus.Histogram
-	fails      prometheus.Counter
+	start_time *prometheus.HistogramVec
+	fetch_time *prometheus.HistogramVec
+	fails      *prometheus.CounterVec
 	errors     prometheus.Counter
 }
 
 func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodCheck {
-	start_time := prometheus.NewHistogram(
+	start_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
-			Name:      "latency",
-			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-100 seconds
-		})
-	fetch_time := prometheus.NewHistogram(
+			Name:      "latency_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-2 seconds
+		},
+		[]string{"pop"},
+	)
+	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
-			Name:      "fetch_time",
-			Buckets:   prometheus.LinearBuckets(0, 1000, 10), // 0-1 seconds (small file)
-		})
-	fails := prometheus.NewCounter(
+			Name:      "fetch_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-2 seconds (small file)
+		},
+		[]string{"pop"},
+	)
+	fails := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
 			Name:      "fail_count",
-		})
+		},
+		[]string{"pop"},
+	)
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
@@ -79,11 +85,12 @@ func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.C
 		log.Infow("fetching from gateway", "url", url)
 		req, _ := http.NewRequest("GET", url, nil)
 		start := time.Now()
+		var firstByteTime time.Time
 		trace := &httptrace.ClientTrace{
 			GotFirstResponseByte: func() {
-				latency := time.Since(start).Milliseconds()
-				log.Infow("first byte received", "ms", latency)
-				t.start_time.Observe(float64(latency))
+				latency := time.Since(start).Seconds()
+				log.Infow("first byte received", "seconds", latency)
+				firstByteTime = time.Now()
 			},
 		}
 		req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
@@ -97,15 +104,26 @@ func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.C
 			t.errors.Inc()
 			return fmt.Errorf("failed to download content: %w", err)
 		}
-		total_time := time.Since(start).Milliseconds()
-		log.Infow("finished download", "ms", total_time)
-		t.errors.Inc()
-		t.fetch_time.Observe(float64(total_time))
+
+		pop := resp.Header.Get("X-IPFS-POP")
+		labels := prometheus.Labels{
+			"pop": pop,
+		}
+
+		// Record observations.
+		timeToFirstByte := firstByteTime.Sub(start).Seconds()
+		totalTime := time.Since(start).Seconds()
+
+		t.start_time.With(labels).Observe(float64(timeToFirstByte))
+		common_fetch_latency.Set(float64(timeToFirstByte))
+
+		log.Infow("finished download", "seconds", totalTime, "pop", pop)
+		t.fetch_time.With(labels).Observe(float64(totalTime))
 
 		log.Info("checking result")
 		// compare response with what we sent
 		if !reflect.DeepEqual(respb, value) {
-			t.fails.Inc()
+			t.fails.With(labels).Inc()
 			return fmt.Errorf("expected response from gateway to match generated content: %s", url)
 		}
 	}

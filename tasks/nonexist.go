@@ -21,33 +21,39 @@ import (
 
 type NonExistCheck struct {
 	reg        *task.Registration
-	start_time prometheus.Histogram
-	fetch_time prometheus.Histogram
-	fails      prometheus.Counter
+	start_time *prometheus.HistogramVec
+	fetch_time *prometheus.HistogramVec
+	fails      *prometheus.CounterVec
 	errors     prometheus.Counter
 }
 
 func NewNonExistCheck(schedule string) *NonExistCheck {
-	start_time := prometheus.NewHistogram(
+	start_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exsist",
-			Name:      "latency",
-			Buckets:   prometheus.LinearBuckets(0, 600000, 10), // 0-10-minutes
-		})
-	fetch_time := prometheus.NewHistogram(
+			Name:      "latency_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 60, 10), // 0-10-minutes
+		},
+		[]string{"pop"},
+	)
+	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exist",
-			Name:      "fetch_time",
-			Buckets:   prometheus.LinearBuckets(0, 1000, 10), // 0-1 second
-		})
-	fails := prometheus.NewCounter(
+			Name:      "fetch_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 0.1, 10), // 0-1 second. This should never happen in reality.
+		},
+		[]string{"pop"},
+	)
+	fails := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exist",
 			Name:      "fail_count",
-		})
+		},
+		[]string{"pop"},
+	)
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
@@ -99,11 +105,12 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 	log.Infow("fetching from gateway", "url", url)
 	req, _ := http.NewRequest("GET", url, nil)
 	start := time.Now()
+	var firstByteTime time.Time
 	trace := &httptrace.ClientTrace{
 		GotFirstResponseByte: func() {
-			latency := time.Since(start).Milliseconds()
-			log.Infow("first byte received", "ms", latency)
-			t.start_time.Observe(float64(latency))
+			latency := time.Since(start).Seconds()
+			log.Infow("first byte received", "seconds", latency)
+			firstByteTime = time.Now()
 		},
 	}
 	req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
@@ -117,14 +124,25 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 		t.errors.Inc()
 		return fmt.Errorf("failed to download content: %w", err)
 	}
-	total_time := time.Since(start).Milliseconds()
-	log.Infow("finished download", "ms", total_time)
-	t.fetch_time.Observe(float64(total_time))
+
+	pop := resp.Header.Get("X-IPFS-POP")
+	labels := prometheus.Labels{
+		"pop": pop,
+	}
+
+	// Record observations.
+	timeToFirstByte := firstByteTime.Sub(start).Seconds()
+	totalTime := time.Since(start).Seconds()
+
+	t.start_time.With(labels).Observe(float64(timeToFirstByte))
+
+	log.Infow("finished download", "seconds", totalTime, "pop", pop)
+	t.fetch_time.With(labels).Observe(float64(totalTime))
 
 	log.Info("checking that we got a 404")
 	if resp.StatusCode != 404 {
-		t.fails.Inc()
-		return fmt.Errorf("expected to see 404 from gateway, but didn't. status: (%d): %w", resp.StatusCode, err)
+		t.fails.With(labels).Inc()
+		return fmt.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d): %w", pop, resp.StatusCode, err)
 	}
 
 	return nil

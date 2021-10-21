@@ -22,33 +22,39 @@ import (
 type RandomLocalBench struct {
 	reg        *task.Registration
 	size       int
-	start_time prometheus.Histogram
-	fetch_time prometheus.Histogram
-	fails      prometheus.Counter
+	start_time *prometheus.HistogramVec
+	fetch_time *prometheus.HistogramVec
+	fails      *prometheus.CounterVec
 	errors     prometheus.Counter
 }
 
 func NewRandomLocalBench(schedule string, size int) *RandomLocalBench {
-	start_time := prometheus.NewHistogram(
+	start_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_local",
-			Name:      fmt.Sprintf("%d_latency", size),
-			Buckets:   prometheus.LinearBuckets(0, 10000, 10), // 0-10 seconds
-		})
-	fetch_time := prometheus.NewHistogram(
+			Name:      fmt.Sprintf("%d_latency_seconds", size),
+			Buckets:   prometheus.LinearBuckets(0, 6, 10), // 0-1 minutes
+		},
+		[]string{"pop"},
+	)
+	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_local",
-			Name:      fmt.Sprintf("%d_fetch_time", size),
-			Buckets:   prometheus.LinearBuckets(0, 300000, 10), // 0-300 seconds
-		})
-	fails := prometheus.NewCounter(
+			Name:      fmt.Sprintf("%d_fetch_seconds", size),
+			Buckets:   prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
+		},
+		[]string{"pop"},
+	)
+	fails := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "random_local",
 			Name:      fmt.Sprintf("%d_fail_count", size),
-		})
+		},
+		[]string{"pop"},
+	)
 	errors := prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
@@ -107,14 +113,12 @@ func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning
 	log.Infow("fetching from gateway", "url", url)
 	req, _ := http.NewRequest("GET", url, nil)
 	start := time.Now()
-	var firstbyte_time time.Time
+	var firstByteTime time.Time
 	trace := &httptrace.ClientTrace{
 		GotFirstResponseByte: func() {
-			latency := time.Since(start).Milliseconds()
-			log.Infow("first byte received", "ms", latency)
-			t.start_time.Observe(float64(latency))
-			common_fetch_latency.Set(float64(latency))
-			firstbyte_time = time.Now()
+			latency := time.Since(start).Seconds()
+			log.Infow("first byte received", "seconds", latency)
+			firstByteTime = time.Now()
 		},
 	}
 	req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
@@ -128,18 +132,30 @@ func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning
 		t.errors.Inc()
 		return fmt.Errorf("failed to download content: %w", err)
 	}
-	total_time := time.Since(start).Milliseconds()
-	download_time := time.Since(firstbyte_time).Seconds()
-	log.Infow("finished download", "ms", total_time)
-	t.fetch_time.Observe(float64(total_time))
-	downloadBytesPerSecond := float64(t.size) / download_time
+
+	pop := resp.Header.Get("X-IPFS-POP")
+	labels := prometheus.Labels{
+		"pop": pop,
+	}
+
+	// Record observations.
+	timeToFirstByte := firstByteTime.Sub(start).Seconds()
+	totalTime := time.Since(start).Seconds()
+	downloadTime := time.Since(firstByteTime).Seconds()
+	downloadBytesPerSecond := float64(t.size) / downloadTime
+
+	t.start_time.With(labels).Observe(float64(timeToFirstByte))
+	common_fetch_latency.Set(float64(timeToFirstByte))
+
+	log.Infow("finished download", "seconds", totalTime, "pop", pop)
+	t.fetch_time.With(labels).Observe(float64(totalTime))
 	common_fetch_speed.Set(downloadBytesPerSecond)
 
 	log.Info("checking result")
 	// compare response with what we sent
 	if !reflect.DeepEqual(respb, randb) {
-		t.fails.Inc()
-		return fmt.Errorf("expected response from gateway to match generated content: %s", url)
+		t.fails.With(labels).Inc()
+		return fmt.Errorf("expected response from gateway to match generated content: pop: %s, url: %s", pop, url)
 	}
 
 	return nil

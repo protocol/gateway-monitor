@@ -77,23 +77,11 @@ func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client
 
 	localLabels := prometheus.Labels{"test": "ipns", "size": strconv.Itoa(t.size), "pop": "localhost"}
 
-	// generate random data
-	log.Infof("generating %d bytes random data", t.size)
-	randb := make([]byte, t.size)
-	if _, err := rand.Read(randb); err != nil {
-		errors.With(localLabels).Inc()
-		return fmt.Errorf("failed to generate random values: %w", err)
-	}
-	buf := bytes.NewReader(randb)
-
-	// add to local ipfs
-	log.Info("writing data to local IPFS node")
-	cidstr, err := sh.Add(buf)
+	cidstr, randb, err := addRandomData(sh, "random_local", t.size)
 	if err != nil {
-		log.Errorw("failed to write to IPFS", "err", err)
-		errors.With(localLabels).Inc()
 		return err
 	}
+
 	defer func() {
 		log.Info("cleaning up IPFS node")
 		err := sh.Unpin(cidstr)
@@ -105,7 +93,7 @@ func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client
 
 	// Generate a new key
 	// we already have a random value lying around, might as
-	// well use it for the ney name.
+	// well use it for the new name.
 	keyName := base64.StdEncoding.EncodeToString(randb[:8])
 	_, err = sh.KeyGen(ctx, keyName)
 	if err != nil {

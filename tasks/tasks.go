@@ -187,7 +187,7 @@ func checkAndRecord(
 	fetch_speed.With(responseLabels).Set(downloadBytesPerSecond)
 
 	// compare response with what we sent
-	log.Info("%s: checking result", taskName)
+	log.Infof("%s: checking result", taskName)
 	if !reflect.DeepEqual(expected, respb) {
 		fails.With(responseLabels).Inc()
 		log.Errorf("%s: expected response from gateway to match generated content. pop: %s, url: %s", taskName, pop, resp.Request.URL)

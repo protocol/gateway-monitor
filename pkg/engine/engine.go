@@ -68,6 +68,9 @@ func NewSingle(sh *shell.Shell, ps *pinning.Client, gw string, tsks ...task.Task
 	}
 
 	for _, t := range tsks {
+		for _, col := range t.Registration().Collectors {
+			prometheus.Register(col)
+		}
 		eng.q.Push(t)
 	}
 	eng.q.Push(

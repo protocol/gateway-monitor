@@ -1,8 +1,10 @@
 package commands
 
 import (
+	"net/http"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/urfave/cli/v2"
 
 	logging "github.com/ipfs/go-log"
@@ -12,18 +14,39 @@ import (
 )
 
 var singleCommand = &cli.Command{
-	Name:  "single",
-	Usage: "run tests once, ignoring the schedule",
+	Name:    "single",
+	Aliases: []string{},
+	Usage:   "run tests once, ignoring the schedule",
 	Action: func(cctx *cli.Context) error {
-		// If we arent explicitly setting the log level,
-		// lets set it so most messages can be seen
+		log = logging.Logger("main")
 		if _, found := os.LookupEnv("GOLOG_LOG_LEVEL"); !found {
 			logging.SetAllLoggers(logging.LevelInfo)
 		}
 		ipfs := GetIPFS(cctx)
 		ps := GetPinningService(cctx)
 		gw := GetGW(cctx)
+		http.Handle("/metrics", promhttp.Handler())
+		go func() {
+			http.ListenAndServe(":2112", nil)
+		}()
+		log.Info("Prometheus metrics listener on http://0.0.0.0:2112/metrics")
 		eng := engine.NewSingle(ipfs, ps, gw, tasks.All...)
-		return <-eng.Start(cctx.Context)
+		if cctx.IsSet("loop") {
+			log.Info("Looping forever")
+			for {
+				err := <-eng.Start(cctx.Context)
+				if err != nil {
+					log.Error(err)
+				}
+			}
+		} else {
+			return <-eng.Start(cctx.Context)
+		}
+	},
+	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:  "loop",
+			Usage: "loop forever, running each test one after another, ignoring the schedule",
+		},
 	},
 }

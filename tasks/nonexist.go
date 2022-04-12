@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptrace"
+	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -21,19 +22,18 @@ import (
 
 type NonExistCheck struct {
 	reg        *task.Registration
-	start_time *prometheus.HistogramVec
+	latency    *prometheus.HistogramVec
 	fetch_time *prometheus.HistogramVec
-	fails      *prometheus.CounterVec
-	errors     prometheus.Counter
+	errors     *prometheus.CounterVec
 }
 
 func NewNonExistCheck(schedule string) *NonExistCheck {
 	start_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
-			Subsystem: "non_exsist",
+			Subsystem: "non_exist",
 			Name:      "latency_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 60, 10), // 0-10-minutes
+			Buckets:   prometheus.LinearBuckets(0, 10, 60), // 0-10-minutes
 		},
 		[]string{"pop"},
 	)
@@ -46,20 +46,15 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 		},
 		[]string{"pop"},
 	)
-	fails := prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Namespace: "gatewaymonitor_task",
-			Subsystem: "non_exist",
-			Name:      "fail_count",
-		},
-		[]string{"pop"},
-	)
-	errors := prometheus.NewCounter(
+	// We track errors separately since for this metric an error is actually a success
+	errors := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exist",
 			Name:      "error_count",
-		})
+		},
+		[]string{"pop"},
+	)
 	reg := task.Registration{
 		Schedule: schedule,
 		Collectors: []prometheus.Collector{
@@ -71,36 +66,38 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 	}
 	return &NonExistCheck{
 		reg:        &reg,
-		start_time: start_time,
+		latency:    start_time,
 		fetch_time: fetch_time,
-		fails:      fails,
 		errors:     errors,
 	}
 }
 
 func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
+	localLabels := prometheus.Labels{"pop": "localhost"}
+	remoteLabels := prometheus.Labels{"pop": gw}
+
 	buf := make([]byte, 128)
 	_, err := rand.Read(buf)
 	if err != nil {
-		t.errors.Inc()
+		t.errors.With(localLabels).Inc()
 		return fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 
 	encoded, err := multihash.EncodeName(buf, "sha3")
 	if err != nil {
-		t.errors.Inc()
+		t.errors.With(localLabels).Inc()
 		return fmt.Errorf("failed to generate multihash of random bytes: %w", err)
 	}
 	cast, err := multihash.Cast(encoded)
 	if err != nil {
-		t.errors.Inc()
+		t.errors.With(localLabels).Inc()
 		return fmt.Errorf("failed to cast as multihash: %w", err)
 	}
 
 	c := cid.NewCidV1(cid.Raw, cast)
-	log.Info("generated random CID", "cid", c.String())
+	log.Infof("generated random CID $s", c)
 
-	url := fmt.Sprintf("%s/ipfs/%s", gw, c.String())
+	url := fmt.Sprintf("%s/ipfs/%s", gw, c)
 
 	log.Infow("fetching from gateway", "url", url)
 	req, _ := http.NewRequest("GET", url, nil)
@@ -116,33 +113,40 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 	req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.errors.Inc()
+		t.errors.With(remoteLabels).Inc()
 		return fmt.Errorf("failed to fetch from gateway: %w", err)
 	}
 	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		t.errors.Inc()
+		t.errors.With(remoteLabels).Inc()
 		return fmt.Errorf("failed to download content: %w", err)
 	}
 
 	pop := resp.Header.Get("X-IPFS-POP")
-	labels := prometheus.Labels{
-		"pop": pop,
-	}
+	responseLabels := prometheus.Labels{"test": "nonexist", "size": "", "pop": pop}
+	popLabels := prometheus.Labels{"pop": pop}
 
 	// Record observations.
 	timeToFirstByte := firstByteTime.Sub(start).Seconds()
 	totalTime := time.Since(start).Seconds()
 
-	t.start_time.With(labels).Observe(float64(timeToFirstByte))
+	t.latency.With(popLabels).Observe(float64(timeToFirstByte))
+	fetch_latency.With(responseLabels).Set(float64(timeToFirstByte))
 
 	log.Infow("finished download", "seconds", totalTime, "pop", pop)
-	t.fetch_time.With(labels).Observe(float64(totalTime))
+	t.fetch_time.With(popLabels).Observe(float64(totalTime))
 
 	log.Info("checking that we got a 404")
 	if resp.StatusCode != 404 {
-		t.fails.With(labels).Inc()
-		return fmt.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d): %w", pop, resp.StatusCode, err)
+		errorLabels := prometheus.Labels{
+			"test": "nonexist",
+			"size": "",
+			"pop":  pop,
+			"code": strconv.Itoa(resp.StatusCode),
+		}
+		fails.With(errorLabels).Inc()
+		log.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d)", pop, resp.StatusCode)
+		return fmt.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d)", pop, resp.StatusCode)
 	}
 
 	return nil

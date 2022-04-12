@@ -123,18 +123,9 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 	}
 
 	pop := resp.Header.Get("X-IPFS-POP")
-	responseLabels := prometheus.Labels{"test": "nonexist", "size": "", "pop": pop}
-	popLabels := prometheus.Labels{"pop": pop}
-
-	// Record observations.
-	timeToFirstByte := firstByteTime.Sub(start).Seconds()
-	totalTime := time.Since(start).Seconds()
-
-	t.latency.With(popLabels).Observe(float64(timeToFirstByte))
-	fetch_latency.With(responseLabels).Set(float64(timeToFirstByte))
-
-	log.Infow("finished download", "seconds", totalTime, "pop", pop)
-	t.fetch_time.With(popLabels).Observe(float64(totalTime))
+	if pop == "" {
+		pop = resp.Header.Get("X-IPFS-LB-POP") // If go-ipfs didn't reply, get the pop from the LB
+	}
 
 	log.Info("checking that we got a 404")
 	if resp.StatusCode != 404 {
@@ -148,6 +139,19 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 		log.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d)", pop, resp.StatusCode)
 		return fmt.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d)", pop, resp.StatusCode)
 	}
+
+	responseLabels := prometheus.Labels{"test": "nonexist", "size": "", "pop": pop}
+	popLabels := prometheus.Labels{"pop": pop}
+
+	// Record observations.
+	timeToFirstByte := firstByteTime.Sub(start).Seconds()
+	totalTime := time.Since(start).Seconds()
+
+	t.latency.With(popLabels).Observe(float64(timeToFirstByte))
+	fetch_latency.With(responseLabels).Set(float64(timeToFirstByte))
+
+	log.Infow("finished download", "seconds", totalTime, "pop", pop)
+	t.fetch_time.With(popLabels).Observe(float64(totalTime))
 
 	return nil
 }

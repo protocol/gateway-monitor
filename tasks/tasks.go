@@ -155,11 +155,11 @@ func checkAndRecord(
 	}
 
 	pop := resp.Header.Get("X-IPFS-POP")
+	if pop == "" {
+		pop = resp.Header.Get("X-IPFS-LB-POP") // If go-ipfs didn't reply, get the pop from the LB
+	}
 
 	if resp.StatusCode != 200 {
-		if pop == "" {
-			pop = resp.Header.Get("X-IPFS-LB-POP") // If go-ipfs didn't reply, get the pop from the LB
-		}
 		errorLabels := prometheus.Labels{
 			"test": taskName,
 			"size": strconv.Itoa(size),

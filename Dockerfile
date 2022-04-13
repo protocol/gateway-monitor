@@ -3,7 +3,7 @@ WORKDIR /app
 ENV GOOS=linux
 ENV GOARCH=amd64
 ENV CGO_ENABLED=0
-RUN apk --update add ca-certificates
+RUN apk --update add ca-certificates git
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./

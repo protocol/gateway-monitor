@@ -22,17 +22,26 @@ var singleCommand = &cli.Command{
 		if _, found := os.LookupEnv("GOLOG_LOG_LEVEL"); !found {
 			logging.SetAllLoggers(logging.LevelInfo)
 		}
+
 		ipfs := GetIPFS(cctx)
 		ps := GetPinningService(cctx)
 		gw := GetGW(cctx)
+
 		http.Handle("/metrics", promhttp.Handler())
+
 		go func() {
 			http.ListenAndServe(":2112", nil)
 		}()
-		log.Info("Prometheus metrics listener on http://0.0.0.0:2112/metrics")
+
+		log.Info("Prometheus metrics listener running at http://0.0.0.0:2112/metrics")
+
 		eng := engine.NewSingle(ipfs, ps, gw, tasks.All...)
+
 		if cctx.IsSet("loop") {
 			log.Info("Looping forever")
+			repeatForever := eng.RepeatForever(tasks.All)
+			eng.AddTask(repeatForever)
+
 			for {
 				err := <-eng.Start(cctx.Context)
 				if err != nil {
@@ -40,6 +49,7 @@ var singleCommand = &cli.Command{
 				}
 			}
 		} else {
+			eng.AddTask(eng.TerminalTask())
 			return <-eng.Start(cctx.Context)
 		}
 	},

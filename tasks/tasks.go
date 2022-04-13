@@ -56,18 +56,21 @@ var (
 	fetch_speed = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "gatewaymonitor_task",
+			Subsystem: "common",
 			Name:      "fetch_speed_bytes_per_second",
 		},
 		[]string{"test", "pop", "size"})
 	fetch_latency = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "gatewaymonitor_task",
+			Subsystem: "common",
 			Name:      "fetch_latency_seconds",
 		},
 		[]string{"test", "pop", "size"})
 	fails = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
+			Subsystem: "common",
 			Name:      "fail_count",
 		},
 		[]string{"test", "pop", "size", "code"},
@@ -75,6 +78,7 @@ var (
 	errors = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
+			Subsystem: "common",
 			Name:      "error_count",
 		},
 		[]string{"test", "pop", "size"},
@@ -167,7 +171,6 @@ func checkAndRecord(
 			"code": strconv.Itoa(resp.StatusCode),
 		}
 		fails.With(errorLabels).Inc()
-		log.Errorf("%s: expected response code 200 from gateway, got %d from %s. url: %s", taskName, resp.StatusCode, pop, url)
 		return fmt.Errorf("%s: expected response code 200 from gateway, got %d from %s. url: %s", taskName, resp.StatusCode, pop, url)
 	}
 
@@ -182,7 +185,7 @@ func checkAndRecord(
 	testLatencyHist.With(popLabels).Observe(float64(timeToFirstByte))
 	fetch_latency.With(responseLabels).Set(float64(timeToFirstByte))
 
-	log.Infof("%s: finished download in %d seconds. speed: %f bytes/sec. pop: %s", taskName, totalTime, downloadBytesPerSecond, pop)
+	log.Infof("%s: finished download in %f seconds. speed: %f bytes/sec. pop: %s", taskName, totalTime, downloadBytesPerSecond, pop)
 	testTimeHist.With(popLabels).Observe(float64(totalTime))
 	fetch_speed.With(responseLabels).Set(downloadBytesPerSecond)
 
@@ -190,7 +193,6 @@ func checkAndRecord(
 	log.Infof("%s: checking result", taskName)
 	if !reflect.DeepEqual(expected, respb) {
 		fails.With(responseLabels).Inc()
-		log.Errorf("%s: expected response from gateway to match generated content. pop: %s, url: %s", taskName, pop, resp.Request.URL)
 		return fmt.Errorf("%s: expected response from gateway to match generated content. pop: %s, url: %s", taskName, pop, resp.Request.URL)
 	}
 	return nil

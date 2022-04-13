@@ -1,9 +1,7 @@
 package tasks
 
 import (
-	"bytes"
 	"context"
-	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"strconv"

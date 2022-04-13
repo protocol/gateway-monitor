@@ -95,7 +95,7 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 	}
 
 	c := cid.NewCidV1(cid.Raw, cast)
-	log.Infof("generated random CID $s", c)
+	log.Infof("generated random CID %s", c)
 
 	url := fmt.Sprintf("%s/ipfs/%s", gw, c)
 
@@ -136,7 +136,6 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 			"code": strconv.Itoa(resp.StatusCode),
 		}
 		fails.With(errorLabels).Inc()
-		log.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d)", pop, resp.StatusCode)
 		return fmt.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d)", pop, resp.StatusCode)
 	}
 

@@ -25,9 +25,9 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
 			Name:      "latency_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-2 seconds
+			Buckets:   prometheus.LinearBuckets(0, 0.2, 11), // 0-2 seconds
 		},
-		[]string{"pop"},
+		[]string{"pop", "code"},
 	)
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -36,7 +36,7 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Name:      "fetch_seconds",
 			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-2 seconds (small file)
 		},
-		[]string{"pop"},
+		[]string{"pop", "code"},
 	)
 	reg := task.Registration{
 		Schedule: schedule,

@@ -28,10 +28,10 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "random_pinning",
 			Name:        "latency_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 6, 10), // 0-1 minutes
+			Buckets:     prometheus.LinearBuckets(0, 6, 11), // 0-1 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
-		[]string{"pop"},
+		[]string{"pop", "code"},
 	)
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -41,7 +41,7 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Buckets:     prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
-		[]string{"pop"},
+		[]string{"pop", "code"},
 	)
 	reg := task.Registration{
 		Schedule: schedule,

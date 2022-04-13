@@ -26,10 +26,10 @@ func NewRandomLocalBench(schedule string, size int) *RandomLocalBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "random_local",
 			Name:        "latency_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 6, 10), // 0-1 minutes
+			Buckets:     prometheus.LinearBuckets(0, 6, 11), // 0-1 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
-		[]string{"pop"},
+		[]string{"pop", "code"},
 	)
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -39,7 +39,7 @@ func NewRandomLocalBench(schedule string, size int) *RandomLocalBench {
 			Buckets:     prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
-		[]string{"pop"},
+		[]string{"pop", "code"},
 	)
 	reg := task.Registration{
 		Schedule: schedule,

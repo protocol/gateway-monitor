@@ -29,7 +29,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "ipns",
 			Name:        "publish_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 10, 10), // 0-10 seconds
+			Buckets:     prometheus.LinearBuckets(0, 10, 10), // 0-100 seconds
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 	)
@@ -41,17 +41,17 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Buckets:     prometheus.LinearBuckets(0, 6, 10), // 0-1 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
-		[]string{"pop"},
+		[]string{"pop", "code"},
 	)
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "ipns",
-			Name:        fmt.Sprintf("%d_fetch_seconds", size),
+			Name:        "fetch_seconds",
 			Buckets:     prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
-		[]string{"pop"},
+		[]string{"pop", "code"},
 	)
 	reg := task.Registration{
 		Schedule: schedule,

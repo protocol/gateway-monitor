@@ -59,14 +59,14 @@ var (
 			Subsystem: "common",
 			Name:      "fetch_speed_bytes_per_second",
 		},
-		[]string{"test", "pop", "size"})
+		[]string{"test", "pop", "size", "code"})
 	fetch_latency = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "common",
 			Name:      "fetch_latency_seconds",
 		},
-		[]string{"test", "pop", "size"})
+		[]string{"test", "pop", "size", "code"})
 	fails = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
@@ -163,31 +163,37 @@ func checkAndRecord(
 		pop = resp.Header.Get("X-IPFS-LB-POP") // If go-ipfs didn't reply, get the pop from the LB
 	}
 
+	code := strconv.Itoa(resp.StatusCode)
+	responseLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": pop, "code": code}
+	popLabels := prometheus.Labels{"pop": pop, "code": code}
+
+	timeToFirstByte := firstByteTime.Sub(start).Seconds()
+	testLatencyHist.With(popLabels).Observe(float64(timeToFirstByte))
+	fetch_latency.With(responseLabels).Set(float64(timeToFirstByte))
+
+	totalTime := time.Since(start).Seconds()
+	downloadTime := time.Since(firstByteTime).Seconds()
+
+	testTimeHist.With(popLabels).Observe(float64(totalTime))
+
 	if resp.StatusCode != 200 {
 		errorLabels := prometheus.Labels{
 			"test": taskName,
 			"size": strconv.Itoa(size),
 			"pop":  pop,
-			"code": strconv.Itoa(resp.StatusCode),
+			"code": code,
 		}
 		fails.With(errorLabels).Inc()
+
+		downloadBytesPerSecond := float64(resp.ContentLength) / downloadTime
+		fetch_speed.With(responseLabels).Set(downloadBytesPerSecond)
+
 		return fmt.Errorf("%s: expected response code 200 from gateway, got %d from %s. url: %s", taskName, resp.StatusCode, pop, url)
 	}
 
-	responseLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": pop}
-	popLabels := prometheus.Labels{"pop": pop}
-
-	timeToFirstByte := firstByteTime.Sub(start).Seconds()
-	totalTime := time.Since(start).Seconds()
-	downloadTime := time.Since(firstByteTime).Seconds()
 	downloadBytesPerSecond := float64(size) / downloadTime
-
-	testLatencyHist.With(popLabels).Observe(float64(timeToFirstByte))
-	fetch_latency.With(responseLabels).Set(float64(timeToFirstByte))
-
-	log.Infof("%s: finished download in %f seconds. speed: %f bytes/sec. pop: %s", taskName, totalTime, downloadBytesPerSecond, pop)
-	testTimeHist.With(popLabels).Observe(float64(totalTime))
 	fetch_speed.With(responseLabels).Set(downloadBytesPerSecond)
+	log.Infof("%s: finished download in %f seconds. speed: %f bytes/sec. pop: %s", taskName, totalTime, downloadBytesPerSecond, pop)
 
 	// compare response with what we sent
 	log.Infof("%s: checking result", taskName)

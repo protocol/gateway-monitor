@@ -92,6 +92,7 @@ func (e *Engine) Start(ctx context.Context) chan error {
 			case t := <-tch:
 				c, cancel := context.WithTimeout(ctx, 10*time.Minute)
 				defer cancel()
+				log.Info("Starting task")
 				if err := t.Run(c, e.sh, e.ps, e.gw); err != nil {
 					errCh <- err
 				}

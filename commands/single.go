@@ -39,8 +39,7 @@ var singleCommand = &cli.Command{
 
 		if cctx.IsSet("loop") {
 			log.Info("Looping forever")
-			repeatForever := eng.RepeatForever(tasks.All)
-			eng.AddTask(repeatForever)
+			eng.AddTask(eng.RepeatForever(tasks.All))
 
 			for {
 				err := <-eng.Start(cctx.Context)

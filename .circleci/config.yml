@@ -69,7 +69,9 @@ workflows:
           context:
             - ipfsshipyardbot-docker
       - deploy-lotusinfra:
-          name: deploy-us-east-1-2-dev
+          name: deploy-us-east-2-dev
+          context:
+            - deploy-lotusinfra
           chart: filecoin/lotus-bundle
           chart_version: 0.0.15
           circle_context: ipfsshipyardbot-docker

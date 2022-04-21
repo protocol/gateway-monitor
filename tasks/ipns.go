@@ -29,7 +29,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "ipns",
 			Name:        "publish_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 10, 10), // 0-100 seconds
+			Buckets:     prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 	)
@@ -38,7 +38,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "ipns",
 			Name:        "latency_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 6, 10), // 0-1 minutes
+			Buckets:     prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 		[]string{"pop", "code"},
@@ -48,7 +48,7 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "ipns",
 			Name:        "fetch_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
+			Buckets:     prometheus.LinearBuckets(0, 15, 16), // 0-4 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 		[]string{"pop", "code"},
@@ -81,7 +81,7 @@ func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client
 	}
 
 	defer func() {
-		log.Info("cleaning up IPFS node")
+		log.Info("Unpinning test CID")
 		err := sh.Unpin(cidstr)
 		if err != nil {
 			errors.With(localLabels).Inc()

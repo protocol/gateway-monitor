@@ -26,7 +26,7 @@ func NewRandomLocalBench(schedule string, size int) *RandomLocalBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "random_local",
 			Name:        "latency_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 6, 11), // 0-1 minutes
+			Buckets:     prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 		[]string{"pop", "code"},
@@ -36,7 +36,7 @@ func NewRandomLocalBench(schedule string, size int) *RandomLocalBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "random_local",
 			Name:        "fetch_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
+			Buckets:     prometheus.LinearBuckets(0, 15, 16), // 0-4 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 		[]string{"pop", "code"},
@@ -66,10 +66,10 @@ func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning
 	}
 
 	defer func() {
-		log.Info("cleaning up IPFS node")
+		log.Info("Unpinning test CID")
 		err := sh.Unpin(cidstr)
 		if err != nil {
-			log.Warnw("failed to clean unpin cid.", "cid", cidstr)
+			log.Warnw("Failed to clean unpin cid.", "cid", cidstr)
 			errors.With(localLabels).Inc()
 		}
 	}()

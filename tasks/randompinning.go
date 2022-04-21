@@ -28,7 +28,7 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "random_pinning",
 			Name:        "latency_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 6, 11), // 0-1 minutes
+			Buckets:     prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 		[]string{"pop", "code"},
@@ -38,7 +38,7 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Namespace:   "gatewaymonitor_task",
 			Subsystem:   "random_pinning",
 			Name:        "fetch_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
+			Buckets:     prometheus.LinearBuckets(0, 15, 16), // 0-4 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 		[]string{"pop", "code"},
@@ -70,7 +70,7 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 	}
 
 	defer func() {
-		log.Info("cleaning up IPFS node")
+		log.Info("Unpinning test CID")
 		// don't bother error checking. We clean it up explicitly in the happy path.
 		sh.Unpin(cidstr)
 	}()
@@ -107,7 +107,7 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 	err = sh.Unpin(cidstr)
 	if err != nil {
 		errors.With(localLabels).Inc()
-		return fmt.Errorf("could not unpin cid after adding it earlier: %w", err)
+		return fmt.Errorf("Could not unpin cid after adding it earlier: %w", err)
 	}
 
 	url := fmt.Sprintf("%s/ipfs/%s", gw, cidstr)

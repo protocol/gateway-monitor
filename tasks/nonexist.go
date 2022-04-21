@@ -33,7 +33,7 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exist",
 			Name:      "latency_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 10, 60), // 0-10-minutes
+			Buckets:   prometheus.LinearBuckets(0, 30, 20), // 0-10-minutes
 		},
 		[]string{"pop"},
 	)
@@ -42,7 +42,7 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "non_exist",
 			Name:      "fetch_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 0.1, 10), // 0-1 second. This should never happen in reality.
+			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-1 second. This should never happen in reality.
 		},
 		[]string{"pop"},
 	)

@@ -127,8 +127,8 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 		pop = resp.Header.Get("X-IPFS-LB-POP") // If go-ipfs didn't reply, get the pop from the LB
 	}
 
-	log.Info("checking that we got a 404")
-	if resp.StatusCode != 404 {
+	log.Info("checking that we got a 404 or 504")
+	if resp.StatusCode != 404 && resp.StatusCode != 504 {
 		errorLabels := prometheus.Labels{
 			"test": "nonexist",
 			"size": "",
@@ -136,10 +136,10 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 			"code": strconv.Itoa(resp.StatusCode),
 		}
 		fails.With(errorLabels).Inc()
-		return fmt.Errorf("expected to see 404 from gateway, but didn't. pop: %s, status: (%d)", pop, resp.StatusCode)
+		return fmt.Errorf("expected to see 404 or 504 from gateway, but didn't. pop: %s, status: (%d)", pop, resp.StatusCode)
 	}
 
-	responseLabels := prometheus.Labels{"test": "nonexist", "size": "", "pop": pop}
+	responseLabels := prometheus.Labels{"test": "nonexist", "size": "", "pop": pop, "code": strconv.Itoa(resp.StatusCode)}
 	popLabels := prometheus.Labels{"pop": pop}
 
 	// Record observations.

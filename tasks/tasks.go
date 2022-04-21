@@ -89,6 +89,7 @@ var (
 // Tasks that create pins should clean up after themselves
 // and run this.
 func gc(ctx context.Context, sh *shell.Shell) error {
+	log.Info("GCing repo")
 	req := sh.Request("repo/gc")
 	_, err := req.Send(ctx)
 	if err != nil {

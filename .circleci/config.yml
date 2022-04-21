@@ -81,8 +81,8 @@ workflows:
           release: gateway-monitor-0
           requires:
             - build-push
-          # filters:
-          #   branches:
-          #     only:
-          #       - master
+          filters:
+            branches:
+              only:
+                - master
 

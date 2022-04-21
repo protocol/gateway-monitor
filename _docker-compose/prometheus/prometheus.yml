@@ -3,12 +3,16 @@ global:
   evaluation_interval: 5s
 
 scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-         - targets:
-           - localhost:9090
+- job_name: 'prometheus'
+  static_configs:
+  - targets:
+    - localhost:9090
 
-  - job_name: 'gateway-monitor'
-    static_configs:
-      - targets:
-          - gateway-monitor:2112
+- job_name: 'gateway-monitor'
+  static_configs:
+  - targets:
+    - gateway-monitor:2112
+  metric_relabel_configs:
+  - source_labels: [pop]
+    regex: '.*-([^-]*)'
+    target_label: location

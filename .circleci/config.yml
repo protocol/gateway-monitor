@@ -65,7 +65,9 @@ workflows:
   deploy: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - build-push
+      - build-push:
+          context:
+            - ipfsshipyardbot-docker
       - deploy-lotusinfra:
           name: deploy-us-east-1-2-dev
           chart: filecoin/lotus-bundle

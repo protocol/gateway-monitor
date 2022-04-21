@@ -74,7 +74,7 @@ workflows:
             - deploy-lotusinfra
           chart: filecoin/lotus-bundle
           chart_version: 0.0.15
-          circle_context: ipfsshipyardbot-docker
+          circle_context: sentinel-staging-deploy
           kubernetes_cluster: mainnet-us-east-2-dev
           aws_region: us-east-2
           namespace: ipfs-gateway-monitor

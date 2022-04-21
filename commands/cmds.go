@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"time"
+
 	"github.com/urfave/cli/v2"
 
 	shell "github.com/ipfs/go-ipfs-api"
@@ -23,6 +25,16 @@ func GetIPFS(cctx *cli.Context) *shell.Shell {
 		sh = shell.NewShell(cctx.String("ipfs"))
 	} else {
 		sh = shell.NewLocalShell()
+	}
+
+	// Wait for the IPFS daemon to be ready
+	for {
+		_, err := sh.ID()
+		if err == nil {
+			break
+		}
+		log.Info("Waiting for IPFS daemon to be ready")
+		time.Sleep(1 * time.Second)
 	}
 
 	return sh

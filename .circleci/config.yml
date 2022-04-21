@@ -1,0 +1,84 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+jobs:
+  build-push:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - checkout
+      - run:
+          name: docker-build-push
+          command: |
+            echo $DOCKERHUB_PASS | docker login --username $DOCKERHUB_USER --password-stdin
+            DOCKER_REPO=ipfsshipyardbot/gateway-monitor
+            DOCKER_TAG=$CIRCLE_SHA1
+            echo "export DOCKER_REPO=$DOCKER_REPO" >> $BASH_ENV
+            echo "export DOCKER_TAG=$DOCKER_TAG" >> $BASH_ENV
+            docker build -t "${DOCKER_REPO}:${DOCKER_TAG}" .
+            docker push "${DOCKER_REPO}:${DOCKER_TAG}"
+  deploy-lotusinfra:
+    docker:
+      - image: cimg/base:2021.04
+    parameters:
+      chart:
+        type: string
+      chart_version:
+        type: string
+      namespace:
+        type: string
+      release:
+        type: string
+      circle_context:
+        type: string
+      kubernetes_cluster:
+        type: string
+      aws_region:
+        type: string
+    steps:
+      - run:
+          name: submit deploy job
+          command: |
+            curl --request POST \
+            --url https://circleci.com/api/v2/project/gh/filecoin-project/lotus-infra/pipeline \
+            --header "Circle-Token: $CIRCLE_TOKEN" \
+            --header "content-type: application/json" \
+            --data "{
+              \"parameters\":{
+                \"api_workflow_requested\": \"helm-deploy\",
+                \"circle_context\": \"<< parameters.circle_context >>\",
+                \"kubernetes_cluster\": \"<< parameters.kubernetes_cluster >>\",
+                \"aws_region\": \"<< parameters.aws_region >>\",
+                \"namespace\": \"<< parameters.namespace >>\",
+                \"release\": \"<< parameters.release >>\",
+                \"chart\": \"<< parameters.chart >>\",
+                \"chart_version\": \"<< parameters.chart_version >>\",
+                \"override_repository\": \"filecoin/dealbot\",
+                \"override_tag\": \"$CIRCLE_SHA1\"
+              }}"
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+workflows:
+  deploy: # This is the name of the workflow, feel free to change it to better match your workflow.
+    # Inside the workflow, you define the jobs you want to run.
+    jobs:
+      - build-push
+      - deploy-lotusinfra:
+          name: deploy-us-east-1-2-dev
+          chart: filecoin/lotus-bundle
+          chart_version: 0.0.15
+          circle_context: ipfsshipyardbot-docker
+          kubernetes_cluster: mainnet-us-east-2-dev
+          aws_region: us-east-2
+          namespace: ipfs-gateway-monitor
+          release: gateway-monitor-0
+          requires:
+            - build-push
+          filters:
+            branches:
+              only:
+                - master
+

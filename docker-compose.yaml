@@ -5,18 +5,17 @@ services:
     image: ipfs/go-ipfs:latest
     volumes:
       - ipfs_data:/data/ipfs
-#    ports:
-#      - 4001:4001/tcp
-#      - 4001:4001/udp
-#      - 5001:5001/tcp
-#      - 8080:8080/tcp
-#      - 8081:8081/tcp
+    ports:
+      - 4002:4001/udp
+#      - 5002:5001/tcp
+#      - 8082:8080/tcp
+#      - 8083:8081/tcp
 
   gateway-monitor:
     build: .
     environment:
-      - GOLOG_LOG_LEVEL=info
-      - GATEWAY_MONITOR_IPFS=/dns/ipfs/tcp/5001/http
+      GOLOG_LOG_LEVEL: info
+      GATEWAY_MONITOR_IPFS: /dns/ipfs/tcp/5001/http
       # - GATEWAY_MONITOR_PINNING_SERVICE_URL=
       # - GATEWAY_MONITOR_PINNING_SERVICE_TOKEN=
     ports:
@@ -30,11 +29,11 @@ services:
   prometheus:
     image: prom/prometheus
     command:
+      - '--log.level=debug'
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--log.level=debug'
     ports:
       - 9090:9090
     volumes:

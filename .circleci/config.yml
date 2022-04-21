@@ -75,7 +75,7 @@ workflows:
           chart: filecoin/lotus-bundle
           chart_version: 0.0.15
           circle_context: sentinel-staging-deploy
-          kubernetes_cluster: mainnet-us-east-2-dev
+          kubernetes_cluster: mainnet-us-east-2-dev-eks
           aws_region: us-east-2
           namespace: ipfs-gateway-monitor
           release: gateway-monitor-0

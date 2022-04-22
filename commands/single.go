@@ -35,19 +35,21 @@ var singleCommand = &cli.Command{
 
 		log.Info("Prometheus metrics listener running at http://0.0.0.0:2112/metrics")
 
-		eng := engine.NewSingle(ipfs, ps, gw, tasks.All...)
+		eng := engine.NewSingle(ipfs, ps, gw)
 
 		if cctx.IsSet("loop") {
-			log.Info("Looping forever")
 			eng.AddTask(eng.RepeatForever(tasks.All))
+			log.Info("Looping forever")
+			engCh := eng.Start(cctx.Context)
 
 			for {
-				err := <-eng.Start(cctx.Context)
-				if err != nil {
-					log.Error(err)
-				}
+				err := <-engCh
+				log.Error(err)
 			}
 		} else {
+			for _, t := range tasks.All {
+				eng.AddTask(t)
+			}
 			eng.AddTask(eng.TerminalTask())
 			return <-eng.Start(cctx.Context)
 		}

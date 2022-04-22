@@ -61,8 +61,8 @@ func NewWithQueueAndCron(q *queue.TaskQueue, c *cron.Cron, sh *shell.Shell, ps *
 }
 
 // Create an engine without Cron and prometheus.
-func NewSingle(sh *shell.Shell, ps *pinning.Client, gw string, tsks ...task.Task) *Engine {
-	eng := Engine{
+func NewSingle(sh *shell.Shell, ps *pinning.Client, gw string) *Engine {
+	return &Engine{
 		c:    cron.New(),
 		q:    queue.New(),
 		sh:   sh,
@@ -70,15 +70,6 @@ func NewSingle(sh *shell.Shell, ps *pinning.Client, gw string, tsks ...task.Task
 		gw:   gw,
 		done: make(chan bool, 1),
 	}
-
-	for _, t := range tsks {
-		for _, col := range t.Registration().Collectors {
-			prometheus.Register(col)
-		}
-		eng.q.Push(t)
-	}
-
-	return &eng
 }
 
 func (e *Engine) Start(ctx context.Context) chan error {
@@ -95,8 +86,9 @@ func (e *Engine) Start(ctx context.Context) chan error {
 				log.Infof("Starting task %w", t)
 				if err := t.Run(c, e.sh, e.ps, e.gw); err != nil {
 					errCh <- err
+				} else {
+					log.Infof("Finished task %w", t)
 				}
-				log.Infof("Finished task %w", t)
 			case <-e.done:
 				return
 			}

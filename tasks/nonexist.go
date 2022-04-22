@@ -72,6 +72,10 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 	}
 }
 
+func (t *NonExistCheck) Name() string {
+	return "non_exist"
+}
+
 func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	localLabels := prometheus.Labels{"pop": "localhost"}
 	remoteLabels := prometheus.Labels{"pop": gw}

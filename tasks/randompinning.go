@@ -58,6 +58,10 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 	}
 }
 
+func (t *RandomPinningBench) Name() string {
+	return "random_pinning"
+}
+
 func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	defer gc(ctx, sh)
 
@@ -111,7 +115,7 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 	}
 
 	url := fmt.Sprintf("%s/ipfs/%s", gw, cidstr)
-	return checkAndRecord(ctx, "random_pinning", gw, url, randb, t.latency, t.fetch_time)
+	return checkAndRecord(ctx, t, gw, url, randb, t.latency, t.fetch_time)
 }
 
 func (t *RandomPinningBench) Registration() *task.Registration {

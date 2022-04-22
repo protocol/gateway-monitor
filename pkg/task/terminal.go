@@ -11,6 +11,10 @@ type TerminalTask struct {
 	Done chan bool
 }
 
+func (t *TerminalTask) Name() string {
+	return "terminal_task"
+}
+
 func (t *TerminalTask) Run(context.Context, *shell.Shell, *pinning.Client, string) error {
 	t.Done <- true
 	return nil

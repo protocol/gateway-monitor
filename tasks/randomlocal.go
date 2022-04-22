@@ -56,6 +56,10 @@ func NewRandomLocalBench(schedule string, size int) *RandomLocalBench {
 	}
 }
 
+func (t *RandomLocalBench) Name() string {
+	return "random_local"
+}
+
 func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	defer gc(ctx, sh)
 	localLabels := prometheus.Labels{"test": "random_local", "size": strconv.Itoa(t.size), "pop": "localhost"}
@@ -77,7 +81,7 @@ func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning
 	// request from gateway, observing client metrics
 	url := fmt.Sprintf("%s/ipfs/%s", gw, cidstr)
 
-	return checkAndRecord(ctx, "random_local", gw, url, randb, t.latency, t.fetch_time)
+	return checkAndRecord(ctx, t, gw, url, randb, t.latency, t.fetch_time)
 }
 
 func (t *RandomLocalBench) Registration() *task.Registration {

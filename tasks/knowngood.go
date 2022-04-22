@@ -53,11 +53,15 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 	}
 }
 
+func (t *KnownGoodCheck) Name() string {
+	return "known_good"
+}
+
 func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	for ipfspath, value := range t.checks {
 		// request from gateway, observing client metrics
 		url := fmt.Sprintf("%s%s", gw, ipfspath)
-		err := checkAndRecord(ctx, "known_good", gw, url, value, t.latency, t.fetch_time)
+		err := checkAndRecord(ctx, t, gw, url, value, t.latency, t.fetch_time)
 		if err != nil {
 			return err
 		}

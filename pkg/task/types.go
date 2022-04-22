@@ -10,6 +10,7 @@ import (
 )
 
 type Task interface {
+	Name() string
 	Run(context.Context, *shell.Shell, *pinning.Client, string) error
 	Registration() *Registration
 }

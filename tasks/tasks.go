@@ -98,24 +98,24 @@ func gc(ctx context.Context, sh *shell.Shell) error {
 	return err
 }
 
-func addRandomData(sh *shell.Shell, taskName string, size int) (string, []byte, error) {
 	localLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": "localhost"}
+func addRandomData(sh *shell.Shell, t task.Task, size int) (string, []byte, error) {
 
 	// generate random data
-	log.Infof("%s: generating %d bytes random data", taskName, size)
+	log.Infof("%s(%d): generating %d bytes random data", t.Name(), size, size)
 	randb := make([]byte, size)
 	if _, err := rand.Read(randb); err != nil {
 		errors.With(localLabels).Inc()
-		return "", []byte{}, fmt.Errorf("%s: failed to generate random values: %w", taskName, err)
+		return "", []byte{}, fmt.Errorf("%s(%d): failed to generate random values: %w", t.Name(), size, err)
 	}
 	buf := bytes.NewReader(randb)
 
 	// add to local ipfs
-	log.Infof("%s: writing data to local IPFS node", taskName)
+	log.Infof("%s(%d): writing data to local IPFS node", t.Name(), size)
 	cidstr, err := sh.Add(buf)
 	if err != nil {
 		errors.With(localLabels).Inc()
-		return "", []byte{}, fmt.Errorf("%s: failed to write to IPFS: %w", taskName, err)
+		return "", []byte{}, fmt.Errorf("%s(%d): failed to write to IPFS: %w", t.Name(), size, err)
 	}
 
 	return cidstr, randb, nil
@@ -123,7 +123,7 @@ func addRandomData(sh *shell.Shell, taskName string, size int) (string, []byte, 
 
 func checkAndRecord(
 	ctx context.Context,
-	taskName string,
+	t task.Task,
 	gw string,
 	url string,
 	expected []byte,
@@ -132,7 +132,8 @@ func checkAndRecord(
 ) error {
 	size := len(expected)
 	remoteLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": gw}
-	log.Infof("%s: fetching from gateway. url: %s", taskName, url)
+
+	log.Infof("%s(%d): fetching from gateway. url: %s", t.Name(), size, url)
 	req, _ := http.NewRequest("GET", url, nil)
 	start := time.Now()
 
@@ -141,7 +142,7 @@ func checkAndRecord(
 	trace := &httptrace.ClientTrace{
 		GotFirstResponseByte: func() {
 			latency := time.Since(start).Seconds()
-			log.Infof("%s: first byte received in %f seconds", taskName, latency)
+			log.Infof("%s(%d): first byte received in %f seconds", t.Name(), size, latency)
 			firstByteTime = time.Now()
 		},
 	}
@@ -150,13 +151,13 @@ func checkAndRecord(
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		errors.With(remoteLabels).Inc()
-		return fmt.Errorf("%s: failed to fetch from gateway %w", taskName, err)
+		return fmt.Errorf("%s(%d): failed to fetch from gateway %w", t.Name(), size, err)
 	}
 
 	respb, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		errors.With(remoteLabels).Inc()
-		return fmt.Errorf("%s: failed to download content: %w", taskName, err)
+		return fmt.Errorf("%s(%d): failed to download content: %w", t.Name(), size, err)
 	}
 
 	pop := resp.Header.Get("X-IPFS-POP")
@@ -189,18 +190,18 @@ func checkAndRecord(
 		downloadBytesPerSecond := float64(resp.ContentLength) / downloadTime
 		fetch_speed.With(responseLabels).Set(downloadBytesPerSecond)
 
-		return fmt.Errorf("%s: expected response code 200 from gateway, got %d from %s. url: %s", taskName, resp.StatusCode, pop, url)
+		return fmt.Errorf("%s(%d): expected response code 200 from gateway, got %d from %s. url: %s", t.Name(), size, resp.StatusCode, pop, url)
 	}
 
 	downloadBytesPerSecond := float64(size) / downloadTime
 	fetch_speed.With(responseLabels).Set(downloadBytesPerSecond)
-	log.Infof("%s: finished download in %f seconds. speed: %f bytes/sec. pop: %s", taskName, totalTime, downloadBytesPerSecond, pop)
+	log.Infof("%s(%d): finished download in %f seconds. speed: %f bytes/sec. pop: %s", t.Name(), totalTime, size, downloadBytesPerSecond, pop)
 
 	// compare response with what we sent
-	log.Infof("%s: checking result", taskName)
+	log.Infof("%s(%d): checking result", t.Name(), size)
 	if !reflect.DeepEqual(expected, respb) {
 		fails.With(responseLabels).Inc()
-		return fmt.Errorf("%s: expected response from gateway to match generated content. pop: %s, url: %s", taskName, pop, resp.Request.URL)
+		return fmt.Errorf("%s(%d): expected response from gateway to match generated content. pop: %s, url: %s", t.Name(), size, pop, resp.Request.URL)
 	}
 	return nil
 }

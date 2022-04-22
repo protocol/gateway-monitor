@@ -70,12 +70,16 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 	}
 }
 
+func (t *IpnsBench) Name() string {
+	return "ipns"
+}
+
 func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	defer gc(ctx, sh)
 
-	localLabels := prometheus.Labels{"test": "ipns", "size": strconv.Itoa(t.size), "pop": "localhost"}
+	localLabels := task.Labels(t, "localhost", t.size, 0)
 
-	cidstr, randb, err := addRandomData(sh, "random_local", t.size)
+	cidstr, randb, err := addRandomData(sh, t, t.size)
 	if err != nil {
 		return err
 	}
@@ -111,7 +115,7 @@ func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client
 
 	// request from gateway, observing client metrics
 	url := fmt.Sprintf("%s/ipns/%s", gw, pubResp.Name)
-	return checkAndRecord(ctx, "ipns", gw, url, randb, t.latency, t.fetch_time)
+	return checkAndRecord(ctx, t, gw, url, randb, t.latency, t.fetch_time)
 }
 
 func (t *IpnsBench) Registration() *task.Registration {

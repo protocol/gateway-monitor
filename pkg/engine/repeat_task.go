@@ -30,6 +30,10 @@ func (e *Engine) RepeatForever(tasks []task.Task) *RepeatTask {
 	return e.NewRepeatTask(tasks, func() bool { return false })
 }
 
+func (t *RepeatTask) Name() string {
+	return "repeat_forever"
+}
+
 func (t *RepeatTask) Run(context.Context, *shell.Shell, *pinning.Client, string) error {
 	if t.until() {
 		log.Info("Loop finished")

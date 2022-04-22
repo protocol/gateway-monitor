@@ -64,7 +64,7 @@ func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning
 	defer gc(ctx, sh)
 	localLabels := prometheus.Labels{"test": "random_local", "size": strconv.Itoa(t.size), "pop": "localhost"}
 
-	cidstr, randb, err := addRandomData(sh, "random_local", t.size)
+	cidstr, randb, err := addRandomData(sh, t, t.size)
 	if err != nil {
 		return err
 	}

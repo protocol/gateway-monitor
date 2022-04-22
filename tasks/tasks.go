@@ -98,8 +98,9 @@ func gc(ctx context.Context, sh *shell.Shell) error {
 	return err
 }
 
-	localLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": "localhost"}
 func addRandomData(sh *shell.Shell, t task.Task, size int) (string, []byte, error) {
+	taskName := t.Name()
+	localLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": "localhost"}
 
 	// generate random data
 	log.Infof("%s(%d): generating %d bytes random data", t.Name(), size, size)
@@ -131,6 +132,7 @@ func checkAndRecord(
 	testTimeHist *prometheus.HistogramVec,
 ) error {
 	size := len(expected)
+	taskName := t.Name()
 	remoteLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": gw}
 
 	log.Infof("%s(%d): fetching from gateway. url: %s", t.Name(), size, url)

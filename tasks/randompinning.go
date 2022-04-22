@@ -68,7 +68,7 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 	localLabels := prometheus.Labels{"test": "random_pinning", "size": strconv.Itoa(t.size), "pop": "localhost"}
 	pinLabels := prometheus.Labels{"test": "random_pinning", "size": strconv.Itoa(t.size), "pop": "pinning"}
 
-	cidstr, randb, err := addRandomData(sh, "random_pinning", t.size)
+	cidstr, randb, err := addRandomData(sh, t, t.size)
 	if err != nil {
 		return err
 	}

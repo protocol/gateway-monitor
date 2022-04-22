@@ -77,7 +77,7 @@ func (t *IpnsBench) Name() string {
 func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	defer gc(ctx, sh)
 
-	localLabels := task.Labels(t, "localhost", t.size, 0)
+	localLabels := prometheus.Labels{"test": "ipns", "size": strconv.Itoa(t.size), "pop": "localhost"}
 
 	cidstr, randb, err := addRandomData(sh, t, t.size)
 	if err != nil {

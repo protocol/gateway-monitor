@@ -56,7 +56,7 @@ jobs:
                 \"release\": \"<< parameters.release >>\",
                 \"chart\": \"<< parameters.chart >>\",
                 \"chart_version\": \"<< parameters.chart_version >>\",
-                \"override_repository\": \"filecoin/dealbot\",
+                \"override_repository\": \"ipfsshipyardbot/gateway-monitor\",
                 \"override_tag\": \"$CIRCLE_SHA1\"
               }}"
 # Invoke jobs via workflows

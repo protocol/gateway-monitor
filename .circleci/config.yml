@@ -86,3 +86,57 @@ workflows:
               only:
                 - master
 
+      - deploy-lotusinfra:
+          name: deploy-us-east-1
+          context:
+            - deploy-lotusinfra
+          chart: filecoin/lotus-bundle
+          chart_version: 0.0.15
+          circle_context: filecoin-mainnet-aws
+          kubernetes_cluster: mainnet-us-east-1-eks
+          aws_region: us-east-1
+          namespace: ipfs-gateway-monitor
+          release: gateway-monitor-0
+          requires:
+            - build-push
+          filters:
+            branches:
+              only:
+                - master
+
+      - deploy-lotusinfra:
+          name: deploy-ap-southeast-1
+          context:
+            - deploy-lotusinfra
+          chart: filecoin/lotus-bundle
+          chart_version: 0.0.15
+          circle_context: filecoin-mainnet-aws
+          kubernetes_cluster: mainnet-ap-southeast-1-eks
+          aws_region: ap-southeast-1
+          namespace: ipfs-gateway-monitor
+          release: gateway-monitor-0
+          requires:
+            - build-push
+          filters:
+            branches:
+              only:
+                - master
+
+      - deploy-lotusinfra:
+          name: deploy-eu-central-1
+          context:
+            - deploy-lotusinfra
+          chart: filecoin/lotus-bundle
+          chart_version: 0.0.15
+          circle_context: filecoin-mainnet-aws
+          kubernetes_cluster: mainnet-eu-central-1-eks
+          aws_region: eu-central-1
+          namespace: ipfs-gateway-monitor
+          release: gateway-monitor-0
+          requires:
+            - build-push
+          filters:
+            branches:
+              only:
+                - master
+

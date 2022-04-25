@@ -268,6 +268,15 @@
           "interval": "",
           "legendFormat": "",
           "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${source}"
+          },
+          "expr": "histogram_quantile(0.95, sum(rate(gatewaymonitor_task_known_good_latency_seconds_bucket{code=\"200\"}[$__rate_interval])) by (le))",
+          "hide": false,
+          "refId": "C"
         }
       ],
       "title": "P95 TTFB",
@@ -414,19 +423,6 @@
           "interval": "",
           "legendFormat": "",
           "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "exemplar": true,
-          "expr": "histogram_quantile(0.50, sum(rate(gatewaymonitor_task_known_good_latency_seconds_bucket{code=\"200\"}[$__rate_interval])) by (le))",
-          "format": "heatmap",
-          "hide": false,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "D"
         }
       ],
       "title": "P50 TTFB",

@@ -31,8 +31,8 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Buckets:     prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
-		[]string{"pop", "code"},
-	)
+		defaultLabels)
+
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace:   "gatewaymonitor_task",
@@ -41,8 +41,8 @@ func NewRandomPinningBench(schedule string, size int) *RandomPinningBench {
 			Buckets:     prometheus.LinearBuckets(0, 15, 16), // 0-4 minutes
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
-		[]string{"pop", "code"},
-	)
+		defaultLabels)
+
 	reg := task.Registration{
 		Schedule: schedule,
 		Collectors: []prometheus.Collector{
@@ -62,11 +62,19 @@ func (t *RandomPinningBench) Name() string {
 	return "random_pinning"
 }
 
+func (t *RandomPinningBench) LatencyHist() *prometheus.HistogramVec {
+	return t.latency
+}
+
+func (t *RandomPinningBench) FetchHist() *prometheus.HistogramVec {
+	return t.fetch_time
+}
+
 func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	defer gc(ctx, sh)
 
-	localLabels := prometheus.Labels{"test": "random_pinning", "size": strconv.Itoa(t.size), "pop": "localhost"}
-	pinLabels := prometheus.Labels{"test": "random_pinning", "size": strconv.Itoa(t.size), "pop": "pinning"}
+	localLabels := task.Labels(t, "localhost", t.size, 0)
+	pinLabels := task.Labels(t, "pinning", t.size, 0)
 
 	cidstr, randb, err := addRandomData(sh, t, t.size)
 	if err != nil {
@@ -115,7 +123,7 @@ func (t *RandomPinningBench) Run(ctx context.Context, sh *shell.Shell, ps *pinni
 	}
 
 	url := fmt.Sprintf("%s/ipfs/%s", gw, cidstr)
-	return checkAndRecord(ctx, t, gw, url, randb, t.latency, t.fetch_time)
+	return checkAndRecord(ctx, t, gw, url, randb)
 }
 
 func (t *RandomPinningBench) Registration() *task.Registration {

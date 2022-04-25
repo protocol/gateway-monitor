@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptrace"
-	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -35,8 +34,8 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Name:      "latency_seconds",
 			Buckets:   prometheus.LinearBuckets(0, 30, 20), // 0-10-minutes
 		},
-		[]string{"pop"},
-	)
+		defaultLabels)
+
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
@@ -44,17 +43,8 @@ func NewNonExistCheck(schedule string) *NonExistCheck {
 			Name:      "fetch_seconds",
 			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-1 second. This should never happen in reality.
 		},
-		[]string{"pop"},
-	)
-	// We track errors separately since for this metric an error is actually a success
-	errors := prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Namespace: "gatewaymonitor_task",
-			Subsystem: "non_exist",
-			Name:      "error_count",
-		},
-		[]string{"pop"},
-	)
+		defaultLabels)
+
 	reg := task.Registration{
 		Schedule: schedule,
 		Collectors: []prometheus.Collector{
@@ -76,9 +66,17 @@ func (t *NonExistCheck) Name() string {
 	return "non_exist"
 }
 
+func (t *NonExistCheck) LatencyHist() *prometheus.HistogramVec {
+	return t.latency
+}
+
+func (t *NonExistCheck) FetchHist() *prometheus.HistogramVec {
+	return t.fetch_time
+}
+
 func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
-	localLabels := prometheus.Labels{"pop": "localhost"}
-	remoteLabels := prometheus.Labels{"pop": gw}
+	localLabels := task.Labels(t, "localhost", 0, 0)
+	gwLabels := task.Labels(t, gw, 0, 0)
 
 	buf := make([]byte, 128)
 	_, err := rand.Read(buf)
@@ -117,12 +115,12 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 	req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.errors.With(remoteLabels).Inc()
+		t.errors.With(gwLabels).Inc()
 		return fmt.Errorf("failed to fetch from gateway: %w", err)
 	}
 	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		t.errors.With(remoteLabels).Inc()
+		t.errors.With(gwLabels).Inc()
 		return fmt.Errorf("failed to download content: %w", err)
 	}
 
@@ -132,29 +130,22 @@ func (t *NonExistCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Cl
 	}
 
 	log.Info("checking that we got a 404 or 504")
+	responseLabels := task.Labels(t, pop, 0, resp.StatusCode)
+
 	if resp.StatusCode != 404 && resp.StatusCode != 504 {
-		errorLabels := prometheus.Labels{
-			"test": "nonexist",
-			"size": "",
-			"pop":  pop,
-			"code": strconv.Itoa(resp.StatusCode),
-		}
-		fails.With(errorLabels).Inc()
+		fails.With(responseLabels).Inc()
 		return fmt.Errorf("expected to see 404 or 504 from gateway, but didn't. pop: %s, status: (%d)", pop, resp.StatusCode)
 	}
-
-	responseLabels := prometheus.Labels{"test": "nonexist", "size": "", "pop": pop, "code": strconv.Itoa(resp.StatusCode)}
-	popLabels := prometheus.Labels{"pop": pop}
 
 	// Record observations.
 	timeToFirstByte := firstByteTime.Sub(start).Seconds()
 	totalTime := time.Since(start).Seconds()
 
-	t.latency.With(popLabels).Observe(float64(timeToFirstByte))
+	t.latency.With(responseLabels).Observe(float64(timeToFirstByte))
 	fetch_latency.With(responseLabels).Set(float64(timeToFirstByte))
 
 	log.Infow("finished download", "seconds", totalTime, "pop", pop)
-	t.fetch_time.With(popLabels).Observe(float64(totalTime))
+	t.fetch_time.With(responseLabels).Observe(float64(totalTime))
 
 	return nil
 }

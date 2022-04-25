@@ -33,26 +33,25 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 	)
+
 	latency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace:   "gatewaymonitor_task",
-			Subsystem:   "ipns",
-			Name:        "latency_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
-			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
+			Namespace: "gatewaymonitor_task",
+			Subsystem: "ipns",
+			Name:      "latency_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
 		},
-		[]string{"pop", "code"},
-	)
+		defaultLabels)
+
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace:   "gatewaymonitor_task",
-			Subsystem:   "ipns",
-			Name:        "fetch_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 15, 16), // 0-4 minutes
-			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
+			Namespace: "gatewaymonitor_task",
+			Subsystem: "ipns",
+			Name:      "fetch_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 15, 16), // 0-4 minutes
 		},
-		[]string{"pop", "code"},
-	)
+		defaultLabels)
+
 	reg := task.Registration{
 		Schedule: schedule,
 		Collectors: []prometheus.Collector{
@@ -72,6 +71,14 @@ func NewIpnsBench(schedule string, size int) *IpnsBench {
 
 func (t *IpnsBench) Name() string {
 	return "ipns"
+}
+
+func (t *IpnsBench) LatencyHist() *prometheus.HistogramVec {
+	return t.latency
+}
+
+func (t *IpnsBench) FetchHist() *prometheus.HistogramVec {
+	return t.fetch_time
 }
 
 func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
@@ -115,7 +122,7 @@ func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client
 
 	// request from gateway, observing client metrics
 	url := fmt.Sprintf("%s/ipns/%s", gw, pubResp.Name)
-	return checkAndRecord(ctx, t, gw, url, randb, t.latency, t.fetch_time)
+	return checkAndRecord(ctx, t, gw, url, randb)
 }
 
 func (t *IpnsBench) Registration() *task.Registration {

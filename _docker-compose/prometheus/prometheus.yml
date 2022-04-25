@@ -12,7 +12,3 @@ scrape_configs:
   static_configs:
   - targets:
     - gateway-monitor:2112
-  metric_relabel_configs:
-  - source_labels: [pop]
-    regex: '.*-([^-]*)'
-    target_label: location

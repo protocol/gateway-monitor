@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/urfave/cli/v2"
 
@@ -26,6 +27,12 @@ var singleCommand = &cli.Command{
 		ipfs := GetIPFS(cctx)
 		ps := GetPinningService(cctx)
 		gw := GetGW(cctx)
+
+		for _, t := range tasks.All {
+			for _, col := range t.Registration().Collectors {
+				prometheus.Register(col)
+			}
+		}
 
 		http.Handle("/metrics", promhttp.Handler())
 

@@ -6,6 +6,7 @@ import (
 	"github.com/ipfs-shipyard/gateway-monitor/pkg/task"
 	shell "github.com/ipfs/go-ipfs-api"
 	pinning "github.com/ipfs/go-pinning-service-http-client"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // RepeatTask is a Task that will repeat all the given tasks until a condition is met. The condition
@@ -32,6 +33,14 @@ func (e *Engine) RepeatForever(tasks []task.Task) *RepeatTask {
 
 func (t *RepeatTask) Name() string {
 	return "repeat_forever"
+}
+
+func (t *RepeatTask) LatencyHist() *prometheus.HistogramVec {
+	return nil
+}
+
+func (t *RepeatTask) FetchHist() *prometheus.HistogramVec {
+	return nil
 }
 
 func (t *RepeatTask) Run(context.Context, *shell.Shell, *pinning.Client, string) error {

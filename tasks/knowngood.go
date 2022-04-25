@@ -27,8 +27,8 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Name:      "latency_seconds",
 			Buckets:   prometheus.LinearBuckets(0, 0.2, 11), // 0-2 seconds
 		},
-		[]string{"pop", "code"},
-	)
+		defaultLabels)
+
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
@@ -36,8 +36,8 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Name:      "fetch_seconds",
 			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-2 seconds (small file)
 		},
-		[]string{"pop", "code"},
-	)
+		defaultLabels)
+
 	reg := task.Registration{
 		Schedule: schedule,
 		Collectors: []prometheus.Collector{
@@ -57,11 +57,19 @@ func (t *KnownGoodCheck) Name() string {
 	return "known_good"
 }
 
+func (t *KnownGoodCheck) LatencyHist() *prometheus.HistogramVec {
+	return t.latency
+}
+
+func (t *KnownGoodCheck) FetchHist() *prometheus.HistogramVec {
+	return t.fetch_time
+}
+
 func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	for ipfspath, value := range t.checks {
 		// request from gateway, observing client metrics
 		url := fmt.Sprintf("%s%s", gw, ipfspath)
-		err := checkAndRecord(ctx, t, gw, url, value, t.latency, t.fetch_time)
+		err := checkAndRecord(ctx, t, gw, url, value)
 		if err != nil {
 			return err
 		}

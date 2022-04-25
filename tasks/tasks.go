@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptrace"
 	"reflect"
-	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -39,6 +38,8 @@ const (
 var (
 	log = logging.Logger("tasks")
 
+	defaultLabels = []string{"test", "pop", "location", "size", "code"}
+
 	All = []task.Task{
 		NewRandomLocalBench("10,30,50 * * * *", 16*miB),
 		NewRandomLocalBench("20 * * * *", 256*miB),
@@ -51,7 +52,7 @@ var (
 	}
 
 	// Histogram metrics are defined in each test because the buckets are different between tests
-	// Yes, it's annoying (both in code and when creating the dashboards)
+	// Yes, it's annoying (especially when creating the dashboards)
 
 	fetch_speed = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -59,30 +60,28 @@ var (
 			Subsystem: "common",
 			Name:      "fetch_speed_bytes_per_second",
 		},
-		[]string{"test", "pop", "size", "code"})
+		defaultLabels)
 	fetch_latency = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "common",
 			Name:      "fetch_latency_seconds",
 		},
-		[]string{"test", "pop", "size", "code"})
+		defaultLabels)
 	fails = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "common",
 			Name:      "fail_count",
 		},
-		[]string{"test", "pop", "size", "code"},
-	)
+		defaultLabels)
 	errors = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "common",
 			Name:      "error_count",
 		},
-		[]string{"test", "pop", "size"},
-	)
+		defaultLabels)
 )
 
 // This is here to keep the volume size down
@@ -99,8 +98,7 @@ func gc(ctx context.Context, sh *shell.Shell) error {
 }
 
 func addRandomData(sh *shell.Shell, t task.Task, size int) (string, []byte, error) {
-	taskName := t.Name()
-	localLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": "localhost"}
+	localLabels := task.Labels(t, "localhost", size, 0)
 
 	// generate random data
 	log.Infof("%s(%d): generating %d bytes random data", t.Name(), size, size)
@@ -128,12 +126,9 @@ func checkAndRecord(
 	gw string,
 	url string,
 	expected []byte,
-	testLatencyHist *prometheus.HistogramVec,
-	testTimeHist *prometheus.HistogramVec,
 ) error {
 	size := len(expected)
-	taskName := t.Name()
-	remoteLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": gw}
+	remoteLabels := task.Labels(t, gw, size, 0)
 
 	log.Infof("%s(%d): fetching from gateway. url: %s", t.Name(), size, url)
 	req, _ := http.NewRequest("GET", url, nil)
@@ -167,35 +162,35 @@ func checkAndRecord(
 		pop = resp.Header.Get("X-IPFS-LB-POP") // If go-ipfs didn't reply, get the pop from the LB
 	}
 
-	code := strconv.Itoa(resp.StatusCode)
-	responseLabels := prometheus.Labels{"test": taskName, "size": strconv.Itoa(size), "pop": pop, "code": code}
-	popLabels := prometheus.Labels{"pop": pop, "code": code}
+	responseLabels := task.Labels(t, pop, size, resp.StatusCode)
 
 	timeToFirstByte := firstByteTime.Sub(start).Seconds()
-	testLatencyHist.With(popLabels).Observe(float64(timeToFirstByte))
-	fetch_latency.With(responseLabels).Set(float64(timeToFirstByte))
-
 	totalTime := time.Since(start).Seconds()
 	downloadTime := time.Since(firstByteTime).Seconds()
+	downloadBytesPerSecond := float64(size) / downloadTime
 
-	testTimeHist.With(popLabels).Observe(float64(totalTime))
+	fetch_latency.With(responseLabels).Set(float64(timeToFirstByte))
+	var labMap map[string]string = *(&responseLabels)
+
+	// Record results
+	if t.LatencyHist() != nil {
+		log.Infof("Publishing latency histogram %s with labels %v", t.Name(), labMap)
+		t.LatencyHist().With(responseLabels).Observe(float64(timeToFirstByte))
+	}
+	if t.FetchHist() != nil {
+		log.Infof("Publishing fetch histogram %s with labels %v", t.Name(), labMap)
+		t.FetchHist().With(responseLabels).Observe(float64(totalTime))
+	}
 
 	if resp.StatusCode != 200 {
-		errorLabels := prometheus.Labels{
-			"test": taskName,
-			"size": strconv.Itoa(size),
-			"pop":  pop,
-			"code": code,
-		}
-		fails.With(errorLabels).Inc()
+		fails.With(responseLabels).Inc()
 
-		downloadBytesPerSecond := float64(resp.ContentLength) / downloadTime
+		downloadBytesPerSecond = float64(resp.ContentLength) / downloadTime
 		fetch_speed.With(responseLabels).Set(downloadBytesPerSecond)
 
 		return fmt.Errorf("%s(%d): expected response code 200 from gateway, got %d from %s. url: %s", t.Name(), size, resp.StatusCode, pop, url)
 	}
 
-	downloadBytesPerSecond := float64(size) / downloadTime
 	fetch_speed.With(responseLabels).Set(downloadBytesPerSecond)
 	log.Infof("%s(%d): finished download in %f seconds. speed: %f bytes/sec. pop: %s", t.Name(), totalTime, size, downloadBytesPerSecond, pop)
 

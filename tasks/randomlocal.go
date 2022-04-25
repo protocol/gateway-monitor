@@ -3,7 +3,6 @@ package tasks
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -23,23 +22,21 @@ type RandomLocalBench struct {
 func NewRandomLocalBench(schedule string, size int) *RandomLocalBench {
 	latency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace:   "gatewaymonitor_task",
-			Subsystem:   "random_local",
-			Name:        "latency_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
-			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
+			Namespace: "gatewaymonitor_task",
+			Subsystem: "random_local",
+			Name:      "latency_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
 		},
-		[]string{"pop", "code"},
+		defaultLabels,
 	)
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Namespace:   "gatewaymonitor_task",
-			Subsystem:   "random_local",
-			Name:        "fetch_seconds",
-			Buckets:     prometheus.LinearBuckets(0, 15, 16), // 0-4 minutes
-			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
+			Namespace: "gatewaymonitor_task",
+			Subsystem: "random_local",
+			Name:      "fetch_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 15, 16), // 0-4 minutes
 		},
-		[]string{"pop", "code"},
+		defaultLabels,
 	)
 	reg := task.Registration{
 		Schedule: schedule,
@@ -60,9 +57,16 @@ func (t *RandomLocalBench) Name() string {
 	return "random_local"
 }
 
+func (t *RandomLocalBench) LatencyHist() *prometheus.HistogramVec {
+	return t.latency
+}
+
+func (t *RandomLocalBench) FetchHist() *prometheus.HistogramVec {
+	return t.fetch_time
+}
+
 func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	defer gc(ctx, sh)
-	localLabels := prometheus.Labels{"test": "random_local", "size": strconv.Itoa(t.size), "pop": "localhost"}
 
 	cidstr, randb, err := addRandomData(sh, t, t.size)
 	if err != nil {
@@ -70,6 +74,7 @@ func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning
 	}
 
 	defer func() {
+		localLabels := task.Labels(t, "localhost", t.size, 0)
 		log.Info("Unpinning test CID")
 		err := sh.Unpin(cidstr)
 		if err != nil {
@@ -81,7 +86,7 @@ func (t *RandomLocalBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning
 	// request from gateway, observing client metrics
 	url := fmt.Sprintf("%s/ipfs/%s", gw, cidstr)
 
-	return checkAndRecord(ctx, t, gw, url, randb, t.latency, t.fetch_time)
+	return checkAndRecord(ctx, t, gw, url, randb)
 }
 
 func (t *RandomLocalBench) Registration() *task.Registration {

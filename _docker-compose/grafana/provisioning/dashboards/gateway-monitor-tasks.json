@@ -1016,7 +1016,7 @@
       "type": "timeseries"
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
@@ -1028,303 +1028,302 @@
         "y": 48
       },
       "id": 51,
-      "panels": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${source}"
-          },
-          "description": "",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "decimals": 4,
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 49
-          },
-          "id": 49,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "v1.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "exemplar": true,
-              "expr": "avg(gatewaymonitor_task_common_fetch_latency_seconds{test=\"nonexist\"}) by(location)",
-              "format": "heatmap",
-              "interval": "",
-              "legendFormat": "{{le}}",
-              "refId": "A"
-            }
-          ],
-          "title": "Avg TTFB by location",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${source}"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "decimals": 0,
-              "mappings": [],
-              "noValue": "0",
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 49
-          },
-          "id": 43,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "v1.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "exemplar": true,
-              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"non_exist\"}[$__rate_interval]))",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            }
-          ],
-          "title": "Error count",
-          "type": "stat"
-        },
-        {
-          "datasource": {
-            "uid": "${source}"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 57
-          },
-          "id": 47,
-          "options": {
-            "displayMode": "gradient",
-            "minVizHeight": 10,
-            "minVizWidth": 0,
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showUnfilled": true,
-            "text": {}
-          },
-          "pluginVersion": "v1.0",
-          "targets": [
-            {
-              "exemplar": true,
-              "expr": "gatewaymonitor_task_non_exsist_latency_seconds_bucket",
-              "format": "heatmap",
-              "interval": "",
-              "legendFormat": "{{le}}",
-              "refId": "A"
-            }
-          ],
-          "title": "TTFB",
-          "type": "bargauge"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${source}"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "decimals": 0,
-              "mappings": [],
-              "noValue": "0",
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 57
-          },
-          "id": 45,
-          "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "v1.0",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "exemplar": true,
-              "expr": "gatewaymonitor_task_common_fail_count{test=\"non_exist\"}",
-              "interval": "",
-              "legendFormat": "",
-              "refId": "A"
-            }
-          ],
-          "title": "Fail count",
-          "type": "stat"
-        }
-      ],
+      "panels": [],
       "repeat": "tests",
       "title": "CID not found",
       "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${source}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 4,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 49
+      },
+      "id": 49,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "v1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "exemplar": true,
+          "expr": "avg(gatewaymonitor_task_common_fetch_latency_seconds{test=\"nonexist\"}) by(location)",
+          "format": "heatmap",
+          "interval": "",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg TTFB by location",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${source}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 49
+      },
+      "id": 43,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "v1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "exemplar": true,
+          "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"non_exist\"}[$__range]))",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Error count",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "${source}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 57
+      },
+      "id": 47,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "text": {}
+      },
+      "pluginVersion": "v1.0",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "gatewaymonitor_task_non_exsist_latency_seconds_bucket",
+          "format": "heatmap",
+          "interval": "",
+          "legendFormat": "{{le}}",
+          "refId": "A"
+        }
+      ],
+      "title": "TTFB",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${source}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 57
+      },
+      "id": 45,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "v1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "exemplar": true,
+          "expr": "gatewaymonitor_task_common_fail_count{test=\"non_exist\"}",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Fail count",
+      "type": "stat"
     },
     {
       "collapsed": true,
@@ -1336,7 +1335,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 65
       },
       "id": 41,
       "panels": [
@@ -1466,7 +1465,7 @@
                 "uid": "PBFA97CFB590B2093"
               },
               "exemplar": true,
-              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"known_good\"}[$__rate_interval]))",
+              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"known_good\"}[$__range]))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -1626,7 +1625,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 66
       },
       "id": 67,
       "panels": [
@@ -1756,7 +1755,7 @@
                 "uid": "PBFA97CFB590B2093"
               },
               "exemplar": true,
-              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"ipns\",size=\"268435456\"}[$__rate_interval]))",
+              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"ipns\",size=\"268435456\"}[$__range]))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -2076,7 +2075,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 67
       },
       "id": 29,
       "panels": [
@@ -2111,7 +2110,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 52
+            "y": 76
           },
           "id": 25,
           "options": {
@@ -2180,7 +2179,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 52
+            "y": 76
           },
           "id": 94,
           "options": {
@@ -2206,7 +2205,7 @@
                 "uid": "PBFA97CFB590B2093"
               },
               "exemplar": true,
-              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"ipns\",size=\"16777216\"}[$__rate_interval]))",
+              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"ipns\",size=\"16777216\"}[$__range]))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -2246,7 +2245,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 60
+            "y": 84
           },
           "id": 79,
           "options": {
@@ -2314,7 +2313,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 60
+            "y": 84
           },
           "id": 80,
           "options": {
@@ -2382,7 +2381,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 68
+            "y": 92
           },
           "id": 31,
           "options": {
@@ -2478,7 +2477,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 68
+            "y": 92
           },
           "id": 82,
           "options": {
@@ -2526,7 +2525,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 68
       },
       "id": 19,
       "panels": [
@@ -2561,7 +2560,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 53
+            "y": 77
           },
           "id": 83,
           "options": {
@@ -2630,7 +2629,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 53
+            "y": 77
           },
           "id": 95,
           "options": {
@@ -2656,7 +2655,7 @@
                 "uid": "PBFA97CFB590B2093"
               },
               "exemplar": true,
-              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"random_local\", size=\"268435456\"}[$__rate_interval]))",
+              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"random_local\", size=\"268435456\"}[$__range]))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -2696,7 +2695,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 61
+            "y": 85
           },
           "id": 87,
           "options": {
@@ -2764,7 +2763,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 61
+            "y": 85
           },
           "id": 86,
           "options": {
@@ -2815,7 +2814,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 69
       },
       "id": 6,
       "panels": [
@@ -2850,7 +2849,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 54
+            "y": 94
           },
           "id": 88,
           "options": {
@@ -2919,7 +2918,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 54
+            "y": 94
           },
           "id": 96,
           "options": {
@@ -2945,7 +2944,7 @@
                 "uid": "PBFA97CFB590B2093"
               },
               "exemplar": true,
-              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"random_local\", size=\"16777216\"}[$__rate_interval]))",
+              "expr": "sum(increase(gatewaymonitor_task_common_error_count{test=\"random_local\", size=\"16777216\"}[$__range]))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
@@ -2985,7 +2984,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 62
+            "y": 102
           },
           "id": 90,
           "options": {
@@ -3054,7 +3053,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 62
+            "y": 102
           },
           "id": 91,
           "options": {

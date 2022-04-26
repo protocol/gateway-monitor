@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "iteration": 1650897705561,
+  "iteration": 1650992673655,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1189,6 +1189,7 @@
         },
         {
           "datasource": {
+            "type": "prometheus",
             "uid": "${source}"
           },
           "fieldConfig": {
@@ -1238,8 +1239,12 @@
           "pluginVersion": "v1.0",
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PBFA97CFB590B2093"
+              },
               "exemplar": true,
-              "expr": "gatewaymonitor_task_non_exsist_latency_seconds_bucket",
+              "expr": "gatewaymonitor_task_non_exist_latency_seconds_bucket",
               "format": "heatmap",
               "interval": "",
               "legendFormat": "{{le}}",
@@ -2107,7 +2112,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 76
+            "y": 52
           },
           "id": 25,
           "options": {
@@ -2176,7 +2181,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 76
+            "y": 52
           },
           "id": 94,
           "options": {
@@ -2242,7 +2247,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 84
+            "y": 60
           },
           "id": 79,
           "options": {
@@ -2310,7 +2315,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 84
+            "y": 60
           },
           "id": 80,
           "options": {
@@ -2378,7 +2383,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 92
+            "y": 68
           },
           "id": 31,
           "options": {
@@ -2474,7 +2479,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 92
+            "y": 68
           },
           "id": 82,
           "options": {
@@ -2557,7 +2562,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 77
+            "y": 53
           },
           "id": 83,
           "options": {
@@ -2626,7 +2631,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 77
+            "y": 53
           },
           "id": 95,
           "options": {
@@ -2692,7 +2697,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 85
+            "y": 61
           },
           "id": 87,
           "options": {
@@ -2760,7 +2765,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 85
+            "y": 61
           },
           "id": 86,
           "options": {
@@ -2846,7 +2851,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 94
+            "y": 54
           },
           "id": 88,
           "options": {
@@ -2915,7 +2920,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 94
+            "y": 54
           },
           "id": 96,
           "options": {
@@ -2981,7 +2986,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 102
+            "y": 62
           },
           "id": 90,
           "options": {
@@ -3050,7 +3055,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 102
+            "y": 62
           },
           "id": 91,
           "options": {
@@ -3160,13 +3165,13 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-3h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "gateway-monitor-tasks",
   "uid": "dX01cxdnz",
-  "version": 1,
+  "version": 9,
   "weekStart": ""
 }

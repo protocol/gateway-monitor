@@ -34,9 +34,8 @@ var daemonCommand = &cli.Command{
 			errCh := eng.Start(cctx.Context)
 			for {
 				select {
-				case err := <-errCh:
+				case _ = <-errCh:
 					errCounter.Inc()
-					log.Errorf("%v", err)
 				}
 			}
 		}()

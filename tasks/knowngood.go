@@ -3,11 +3,6 @@ package tasks
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptrace"
-	"reflect"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -20,22 +15,20 @@ import (
 type KnownGoodCheck struct {
 	reg        *task.Registration
 	checks     map[string][]byte
-	start_time *prometheus.HistogramVec
+	latency    *prometheus.HistogramVec
 	fetch_time *prometheus.HistogramVec
-	fails      *prometheus.CounterVec
-	errors     prometheus.Counter
 }
 
 func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodCheck {
-	start_time := prometheus.NewHistogramVec(
+	latency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "known_good",
 			Name:      "latency_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-2 seconds
+			Buckets:   prometheus.LinearBuckets(0, 0.2, 11), // 0-2 seconds
 		},
-		[]string{"pop"},
-	)
+		defaultLabels)
+
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
@@ -43,91 +36,44 @@ func NewKnownGoodCheck(schedule string, checks map[string][]byte) *KnownGoodChec
 			Name:      "fetch_seconds",
 			Buckets:   prometheus.LinearBuckets(0, 0.2, 10), // 0-2 seconds (small file)
 		},
-		[]string{"pop"},
-	)
-	fails := prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Namespace: "gatewaymonitor_task",
-			Subsystem: "known_good",
-			Name:      "fail_count",
-		},
-		[]string{"pop"},
-	)
-	errors := prometheus.NewCounter(
-		prometheus.CounterOpts{
-			Namespace: "gatewaymonitor_task",
-			Subsystem: "known_good",
-			Name:      "error_count",
-		})
+		defaultLabels)
+
 	reg := task.Registration{
 		Schedule: schedule,
 		Collectors: []prometheus.Collector{
-			start_time,
+			latency,
 			fetch_time,
-			fails,
-			errors,
 		},
 	}
 	return &KnownGoodCheck{
 		reg:        &reg,
 		checks:     checks,
-		start_time: start_time,
+		latency:    latency,
 		fetch_time: fetch_time,
-		fails:      fails,
-		errors:     errors,
 	}
+}
+
+func (t *KnownGoodCheck) Name() string {
+	return "known_good"
+}
+
+func (t *KnownGoodCheck) LatencyHist() *prometheus.HistogramVec {
+	return t.latency
+}
+
+func (t *KnownGoodCheck) FetchHist() *prometheus.HistogramVec {
+	return t.fetch_time
 }
 
 func (t *KnownGoodCheck) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	for ipfspath, value := range t.checks {
 		// request from gateway, observing client metrics
 		url := fmt.Sprintf("%s%s", gw, ipfspath)
-		log.Infow("fetching from gateway", "url", url)
-		req, _ := http.NewRequest("GET", url, nil)
-		start := time.Now()
-		var firstByteTime time.Time
-		trace := &httptrace.ClientTrace{
-			GotFirstResponseByte: func() {
-				latency := time.Since(start).Seconds()
-				log.Infow("first byte received", "seconds", latency)
-				firstByteTime = time.Now()
-			},
-		}
-		req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
-		resp, err := http.DefaultClient.Do(req)
+		err := checkAndRecord(ctx, t, gw, url, value)
 		if err != nil {
-			t.errors.Inc()
-			return fmt.Errorf("failed to fetch from gateway: %w", err)
-		}
-		respb, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			t.errors.Inc()
-			return fmt.Errorf("failed to download content: %w", err)
-		}
-
-		pop := resp.Header.Get("X-IPFS-POP")
-		labels := prometheus.Labels{
-			"pop": pop,
-		}
-
-		// Record observations.
-		timeToFirstByte := firstByteTime.Sub(start).Seconds()
-		totalTime := time.Since(start).Seconds()
-
-		t.start_time.With(labels).Observe(float64(timeToFirstByte))
-		common_fetch_latency.Set(float64(timeToFirstByte))
-
-		log.Infow("finished download", "seconds", totalTime, "pop", pop)
-		t.fetch_time.With(labels).Observe(float64(totalTime))
-
-		log.Info("checking result")
-		// compare response with what we sent
-		if !reflect.DeepEqual(respb, value) {
-			t.fails.With(labels).Inc()
-			return fmt.Errorf("expected response from gateway to match generated content: %s", url)
+			return err
 		}
 	}
-
 	return nil
 }
 

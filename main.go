@@ -17,7 +17,7 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "ipfs",
-				Usage: "IPFS api URL (will use IPFS_PATH discovery if unset)",
+				Usage: "IPFS api Multiaddr (will use IPFS_PATH discovery if unset)",
 				EnvVars: []string{
 					"GATEWAY_MONITOR_IPFS",
 				},

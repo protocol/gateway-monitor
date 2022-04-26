@@ -7,12 +7,16 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/robfig/cron/v3"
 
+	logging "github.com/ipfs/go-log"
+
 	shell "github.com/ipfs/go-ipfs-api"
 	pinning "github.com/ipfs/go-pinning-service-http-client"
 
 	"github.com/ipfs-shipyard/gateway-monitor/pkg/queue"
 	"github.com/ipfs-shipyard/gateway-monitor/pkg/task"
 )
+
+var log = logging.Logger("engine")
 
 type Engine struct {
 	c    *cron.Cron
@@ -57,8 +61,8 @@ func NewWithQueueAndCron(q *queue.TaskQueue, c *cron.Cron, sh *shell.Shell, ps *
 }
 
 // Create an engine without Cron and prometheus.
-func NewSingle(sh *shell.Shell, ps *pinning.Client, gw string, tsks ...task.Task) *Engine {
-	eng := Engine{
+func NewSingle(sh *shell.Shell, ps *pinning.Client, gw string) *Engine {
+	return &Engine{
 		c:    cron.New(),
 		q:    queue.New(),
 		sh:   sh,
@@ -66,15 +70,6 @@ func NewSingle(sh *shell.Shell, ps *pinning.Client, gw string, tsks ...task.Task
 		gw:   gw,
 		done: make(chan bool, 1),
 	}
-
-	for _, t := range tsks {
-		eng.q.Push(t)
-	}
-	eng.q.Push(
-		&task.TerminalTask{
-			Done: eng.done,
-		})
-	return &eng
 }
 
 func (e *Engine) Start(ctx context.Context) chan error {
@@ -88,8 +83,11 @@ func (e *Engine) Start(ctx context.Context) chan error {
 			case t := <-tch:
 				c, cancel := context.WithTimeout(ctx, 10*time.Minute)
 				defer cancel()
+				log.Infof("Starting task %w", t)
 				if err := t.Run(c, e.sh, e.ps, e.gw); err != nil {
 					errCh <- err
+				} else {
+					log.Infof("Finished task %w", t)
 				}
 			case <-e.done:
 				return
@@ -102,6 +100,16 @@ func (e *Engine) Start(ctx context.Context) chan error {
 
 func (e *Engine) Stop() {
 	e.done <- true
+}
+
+func (e *Engine) AddTask(t task.Task) {
+	e.q.Push(t)
+}
+
+func (e *Engine) TerminalTask() task.Task {
+	return &task.TerminalTask{
+		Done: e.done,
+	}
 }
 
 func scheduleClosure(q *queue.TaskQueue, t task.Task) func() {

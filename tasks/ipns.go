@@ -1,15 +1,10 @@
 package tasks
 
 import (
-	"bytes"
 	"context"
-	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptrace"
-	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -24,111 +19,94 @@ type IpnsBench struct {
 	reg          *task.Registration
 	size         int
 	publish_time prometheus.Histogram
-	start_time   *prometheus.HistogramVec
+	latency      *prometheus.HistogramVec
 	fetch_time   *prometheus.HistogramVec
-	fails        *prometheus.CounterVec
-	errors       prometheus.Counter
 }
 
 func NewIpnsBench(schedule string, size int) *IpnsBench {
 	publish_time := prometheus.NewHistogram(
 		prometheus.HistogramOpts{
-			Namespace: "gatewaymonitor_task",
-			Subsystem: "ipns",
-			Name:      "publish_seconds",
-			Buckets:   prometheus.LinearBuckets(0, 10, 10), // 0-10 seconds
+			Namespace:   "gatewaymonitor_task",
+			Subsystem:   "ipns",
+			Name:        "publish_seconds",
+			Buckets:     prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
+			ConstLabels: map[string]string{"size": strconv.Itoa(size)},
 		},
 	)
-	start_time := prometheus.NewHistogramVec(
+
+	latency := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
-			Name:      fmt.Sprintf("%d_latency_seconds", size),
-			Buckets:   prometheus.LinearBuckets(0, 6, 10), // 0-1 minutes
+			Name:      "latency_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 12, 11), // 0-2 minutes
 		},
-		[]string{"pop"},
-	)
+		defaultLabels)
+
 	fetch_time := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "gatewaymonitor_task",
 			Subsystem: "ipns",
-			Name:      fmt.Sprintf("%d_fetch_seconds", size),
-			Buckets:   prometheus.LinearBuckets(0, 6, 15), // 0-1:30 minutes
+			Name:      "fetch_seconds",
+			Buckets:   prometheus.LinearBuckets(0, 15, 16), // 0-4 minutes
 		},
-		[]string{"pop"},
-	)
-	fails := prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Namespace: "gatewaymonitor_task",
-			Subsystem: "ipns",
-			Name:      fmt.Sprintf("%d_fail_count", size),
-		},
-		[]string{"pop"},
-	)
-	errors := prometheus.NewCounter(
-		prometheus.CounterOpts{
-			Namespace: "gatewaymonitor_task",
-			Subsystem: "ipns",
-			Name:      fmt.Sprintf("%d_error_count", size),
-		},
-	)
+		defaultLabels)
+
 	reg := task.Registration{
 		Schedule: schedule,
 		Collectors: []prometheus.Collector{
 			publish_time,
-			start_time,
+			latency,
 			fetch_time,
-			fails,
-			errors,
 		},
 	}
 	return &IpnsBench{
 		reg:          &reg,
 		size:         size,
 		publish_time: publish_time,
-		start_time:   start_time,
+		latency:      latency,
 		fetch_time:   fetch_time,
-		fails:        fails,
-		errors:       errors,
 	}
+}
+
+func (t *IpnsBench) Name() string {
+	return "ipns"
+}
+
+func (t *IpnsBench) LatencyHist() *prometheus.HistogramVec {
+	return t.latency
+}
+
+func (t *IpnsBench) FetchHist() *prometheus.HistogramVec {
+	return t.fetch_time
 }
 
 func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client, gw string) error {
 	defer gc(ctx, sh)
 
-	// generate random data
-	log.Infof("generating %d bytes random data", t.size)
-	randb := make([]byte, t.size)
-	if _, err := rand.Read(randb); err != nil {
-		t.errors.Inc()
-		return fmt.Errorf("failed to generate random values: %w", err)
-	}
-	buf := bytes.NewReader(randb)
+	localLabels := prometheus.Labels{"test": "ipns", "size": strconv.Itoa(t.size), "pop": "localhost"}
 
-	// add to local ipfs
-	log.Info("writing data to local IPFS node")
-	cidstr, err := sh.Add(buf)
+	cidstr, randb, err := addRandomData(sh, t, t.size)
 	if err != nil {
-		log.Errorw("failed to write to IPFS", "err", err)
-		t.errors.Inc()
 		return err
 	}
+
 	defer func() {
-		log.Info("cleaning up IPFS node")
+		log.Info("Unpinning test CID")
 		err := sh.Unpin(cidstr)
 		if err != nil {
-			t.errors.Inc()
+			errors.With(localLabels).Inc()
 			log.Warnw("failed to clean unpin cid.", "cid", cidstr)
 		}
 	}()
 
 	// Generate a new key
 	// we already have a random value lying around, might as
-	// well use it for the ney name.
+	// well use it for the new name.
 	keyName := base64.StdEncoding.EncodeToString(randb[:8])
 	_, err = sh.KeyGen(ctx, keyName)
 	if err != nil {
-		t.errors.Inc()
+		errors.With(localLabels).Inc()
 		return fmt.Errorf("failed to generate new key: %w", err)
 	}
 	defer func() {
@@ -144,54 +122,7 @@ func (t *IpnsBench) Run(ctx context.Context, sh *shell.Shell, ps *pinning.Client
 
 	// request from gateway, observing client metrics
 	url := fmt.Sprintf("%s/ipns/%s", gw, pubResp.Name)
-	log.Infow("fetching from gateway", "url", url)
-	req, _ := http.NewRequest("GET", url, nil)
-	start := time.Now()
-	var firstByteTime time.Time
-	trace := &httptrace.ClientTrace{
-		GotFirstResponseByte: func() {
-			latency := time.Since(start).Seconds()
-			log.Infow("first byte received", "seconds", latency)
-			firstByteTime = time.Now()
-		},
-	}
-	req = req.WithContext(httptrace.WithClientTrace(ctx, trace))
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.errors.Inc()
-		return fmt.Errorf("failed to fetch from gateway: %w", err)
-	}
-	respb, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.errors.Inc()
-		return fmt.Errorf("failed to download content: %w", err)
-	}
-
-	labels := prometheus.Labels{
-		"pop": resp.Header.Get("X-IPFS-POP"),
-	}
-
-	// Record observations.
-	timeToFirstByte := firstByteTime.Sub(start).Seconds()
-	totalTime := time.Since(start).Seconds()
-	downloadTime := time.Since(firstByteTime).Seconds()
-	downloadBytesPerSecond := float64(t.size) / downloadTime
-
-	t.start_time.With(labels).Observe(float64(timeToFirstByte))
-	common_fetch_latency.Set(float64(timeToFirstByte))
-
-	log.Infow("finished download", "seconds", totalTime)
-	t.fetch_time.With(labels).Observe(float64(totalTime))
-	common_fetch_speed.Set(downloadBytesPerSecond)
-
-	log.Info("checking result")
-	// compare response with what we sent
-	if !reflect.DeepEqual(respb, randb) {
-		t.fails.With(labels).Inc()
-		return fmt.Errorf("expected response from gateway to match generated content: %w", err)
-	}
-
-	return nil
+	return checkAndRecord(ctx, t, gw, url, randb)
 }
 
 func (t *IpnsBench) Registration() *task.Registration {
